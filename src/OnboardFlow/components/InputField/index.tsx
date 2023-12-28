@@ -22,6 +22,7 @@ export interface FormEntryField {
   setCanContinue?: (value: boolean) => void
   setHasError?: (value: boolean) => void
   autoFocus?: boolean
+  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters' | undefined
   backgroundColor?: ColorValue
   currentPage?: number
   pageIndex?: number
@@ -48,6 +49,7 @@ export const InputField: FC<FormEntryField & TextStyles> = ({
   isRequired,
   onSaveData,
   autoFocus,
+  autoCapitalize,
 }) => {
   const [errorMessage, setErrorMessage] = useState('')
   const [isFocused, setIsFocused] = useState(false)
@@ -124,6 +126,8 @@ export const InputField: FC<FormEntryField & TextStyles> = ({
     }
   }, [])
 
+  console.log({ autoCapitalize })
+
   return (
     <View style={{ marginTop: -6 }}>
       <Text
@@ -146,6 +150,7 @@ export const InputField: FC<FormEntryField & TextStyles> = ({
         {label}
       </Text>
       <TextInput
+        autoCapitalize={autoCapitalize}
         autoFocus={autoFocus}
         onFocus={() => {
           setIsFocused(true)

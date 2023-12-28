@@ -1,9 +1,9 @@
 import React, { FC, useEffect, useState } from 'react'
 import { KeyboardAvoidingView, ScrollView, StyleSheet, View } from 'react-native'
-import { HORIZONTAL_PADDING_DEFAULT } from '../../constants'
-import { OnboardPageConfigParams } from '../../index'
 import { FormEntryField, InputField } from '../../components/InputField'
 import { TextStack } from '../../components/TextStack'
+import { HORIZONTAL_PADDING_DEFAULT } from '../../constants'
+import { OnboardPageConfigParams } from '../../index'
 
 export interface FormEntryPageProps {
   fields: FormEntryField[]
@@ -124,6 +124,7 @@ export const FormEntryPage: FC<OnboardPageConfigParams<FormEntryPageProps>> = ({
                     backgroundColor: style ? StyleSheet.flatten(style)?.backgroundColor : '#FFFFFF',
                     setHasError: setHasError,
                     autoFocus: autoFocus,
+                    autoCapitalize: input?.autoCapitalize,
                     currentPage: currentPage,
                     totalPages: totalPages,
                     pageIndex: pageIndex,
