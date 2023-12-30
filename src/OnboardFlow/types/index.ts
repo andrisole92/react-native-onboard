@@ -1,9 +1,9 @@
-import { StyleProp, TextStyle, ViewStyle } from 'react-native'
 import { FC, ReactElement } from 'react'
-import { FormElementTypesConfig, OnboardPageTypesConfig, PageType } from '../index'
+import { StyleProp, TextStyle, ViewStyle } from 'react-native'
 import { FooterProps } from '../Footer'
 import { PrimaryButtonProps } from '../components/PrimaryButton'
 import { SecondaryButtonProps } from '../components/SecondaryButton'
+import { FormElementTypesConfig, OnboardPageTypesConfig, PageType } from '../index'
 
 /* A FlowItem represents a single element in multiple types of Flows
   Generally, there is a title, subtitle, and image that the component will
@@ -27,6 +27,7 @@ export interface PaginationProps {
 }
 
 export interface PageData extends FlowItemData {
+  dismissKeyboard?: boolean
   imageComponent?: ReactElement
   primaryButtonTitle?: string
   secondaryButtonTitle?: string
@@ -62,6 +63,11 @@ export interface OnboardFlowProps {
   pageStyle?: StyleProp<ViewStyle> | undefined
   pageTypes?: OnboardPageTypesConfig
   formElementTypes?: FormElementTypesConfig
+  uploadImageFunction: (
+    base64Image: string,
+    imageExtension?: string,
+    bucketName?: string
+  ) => Promise<string | null>
   pages?: PageData[]
   paginationColor?: string
   paginationSelectedColor?: string

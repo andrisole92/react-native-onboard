@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState } from 'react'
+import React, { FC, useEffect, useRef, useState } from 'react'
 import { ColorValue, StyleSheet, Text, TextInput, View } from 'react-native'
 import { HORIZONTAL_PADDING_DEFAULT, VERTICAL_PADDING_DEFAULT } from '../../constants'
 import { TextStyles } from '../../types'
@@ -50,15 +50,24 @@ export const InputField: FC<FormEntryField & TextStyles> = ({
   onSaveData,
   autoFocus,
   autoCapitalize,
+  currentPage,
+  pageIndex,
 }) => {
+  const inputRef = useRef(null)
   const [errorMessage, setErrorMessage] = useState('')
   const [isFocused, setIsFocused] = useState(false)
   const [text, setText] = useState(prefill ?? '')
+
+  useEffect(() => {
+    if (currentPage === pageIndex && autoFocus) inputRef?.current?.focus()
+  }, [currentPage, pageIndex, autoFocus, placeHolder])
 
   function getKeyboardType(inputType: string) {
     if (inputType == 'email') {
       return 'email-address'
     }
+
+    if (inputType === 'number') return 'numeric'
 
     return 'default'
   }
@@ -93,7 +102,7 @@ export const InputField: FC<FormEntryField & TextStyles> = ({
       const re = new RegExp(/(.+)@(.+){2,}\.(.+){2,}/)
       const isOk = re.test(string)
       handleErrorState(includeError, isOk, 'Invalid e-mail address')
-    } else if (type == 'text') {
+    } else if (type == 'text' || type === 'number') {
       const isOk = string.trim().length > 0
       handleErrorState(includeError, isOk, FAIL_SILENTLY)
     } else if (type == 'handle') {
@@ -126,11 +135,9 @@ export const InputField: FC<FormEntryField & TextStyles> = ({
     }
   }, [])
 
-  console.log({ autoCapitalize })
-
   return (
     <View style={{ marginTop: -6 }}>
-      <Text
+      {/* <Text
         style={[
           {
             color: secondaryColor,
@@ -148,8 +155,9 @@ export const InputField: FC<FormEntryField & TextStyles> = ({
         ]}
       >
         {label}
-      </Text>
+      </Text> */}
       <TextInput
+        ref={inputRef}
         autoCapitalize={autoCapitalize}
         autoFocus={autoFocus}
         onFocus={() => {

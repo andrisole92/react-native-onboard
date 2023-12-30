@@ -1,7 +1,9 @@
-import React, { FC, useRef, useState } from 'react'
+import React, { FC, useEffect, useRef, useState } from 'react'
+
 import {
   Dimensions,
   ImageBackground,
+  Keyboard,
   Modal,
   SafeAreaView,
   StyleProp,
@@ -12,9 +14,15 @@ import {
   View,
   ViewStyle,
 } from 'react-native'
+import { BottomSheet, BottomSheetRef } from './BottomSheet'
+import { Footer } from './Footer'
 import { Page, PageProps } from './Page'
+import { DotPagination } from './Pagination/components/Dot'
 import { SwiperFlatList } from './Swiper'
 import { SwiperFlatListRefProps } from './Swiper/SwiperProps'
+import { FormEntryField } from './components/InputField'
+import { PrimaryButton, PrimaryButtonProps } from './components/PrimaryButton'
+import { SecondaryButton, SecondaryButtonProps } from './components/SecondaryButton'
 import {
   COLOR_PRIMARY_DEFAULT,
   COLOR_SECONDARY_DEFAULT,
@@ -23,13 +31,7 @@ import {
   HORIZONTAL_PADDING_DEFAULT,
   VERTICAL_PADDING_DEFAULT,
 } from './constants'
-import { PrimaryButton, PrimaryButtonProps } from './components/PrimaryButton'
-import { Footer } from './Footer'
-import { SecondaryButton, SecondaryButtonProps } from './components/SecondaryButton'
 import { OnboardFlowProps, PageData, PaginationProps, TextStyles } from './types'
-import { DotPagination } from './Pagination/components/Dot'
-import { BottomSheet, BottomSheetRef } from './BottomSheet'
-import { FormEntryField } from './components/InputField'
 
 export type PageType = string
 
@@ -94,6 +96,7 @@ export const OnboardFlow: FC<OnboardFlowProps & TextStyles> = ({
   secondaryColor = COLOR_SECONDARY_DEFAULT,
   currentPage,
   setCurrentPage,
+  uploadImageFunction,
   ...props
 }) => {
   const pagesMerged = { ...DEFAULT_PAGE_TYPES, ...pageTypes }
@@ -215,8 +218,14 @@ export const OnboardFlow: FC<OnboardFlowProps & TextStyles> = ({
             index={currentPageValue}
             autoplay={autoPlay}
           >
-            {pages?.map((pageData, index) =>
-              pageData.type && pagesMerged[pageData.type] ? (
+            {pages?.map((pageData, index) => {
+              if (pageData?.type === 'custom' && pageData) return null
+
+              useEffect(() => {
+                if (index === currentPageValue && pageData?.dismissKeyboard) Keyboard.dismiss()
+              }, [index, currentPageValue])
+
+              return pageData.type && pagesMerged[pageData.type] ? (
                 <View key={index} style={{ width: containerWidth }}>
                   {pagesMerged[pageData.type]({
                     formElementTypes: formElementTypes,
@@ -260,6 +269,7 @@ export const OnboardFlow: FC<OnboardFlowProps & TextStyles> = ({
                     },
                     setCanContinue: setCanContinueValue,
                     canContinue: canContinueValue,
+                    uploadImageFunction,
                   })}
                 </View>
               ) : (
@@ -307,10 +317,11 @@ export const OnboardFlow: FC<OnboardFlowProps & TextStyles> = ({
                     }}
                     setCanContinue={setCanContinueValue}
                     canContinue={canContinueValue}
+                    uploadImageFunction={uploadImageFunction}
                   />
                 </View>
               )
-            )}
+            })}
           </SwiperFlatList>
         </View>
         <FooterComponent

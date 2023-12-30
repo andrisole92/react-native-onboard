@@ -1,13 +1,13 @@
 import React, { FC, useEffect, useState } from 'react'
-import { Dimensions, Image, StyleProp, StyleSheet, View, ViewStyle, ScrollView } from 'react-native'
+import { Dimensions, Image, ScrollView, StyleProp, StyleSheet, View, ViewStyle } from 'react-native'
+import { TextStack } from '../components/TextStack'
 import {
   HORIZONTAL_PADDING_DEFAULT,
   TEXT_ALIGN_DEFAULT,
   VERTICAL_PADDING_DEFAULT,
 } from '../constants'
-import { PageData, TextStyles } from '../types'
-import { TextStack } from '../components/TextStack'
 import { FormElementTypesConfig } from '../index'
+import { PageData, TextStyles } from '../types'
 
 export interface PageProps {
   style?: StyleProp<ViewStyle> | undefined
@@ -28,6 +28,11 @@ export interface PageProps {
   secondaryColor?: string
   canContinue?: boolean
   setCanContinue?: (value: boolean) => void
+  uploadImageFunction?: (
+    base64Image: string,
+    imageExtension?: string,
+    bucketName?: string
+  ) => Promise<string | null>
 }
 
 export const Page: FC<PageProps & TextStyles> = ({

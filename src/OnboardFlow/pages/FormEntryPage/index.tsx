@@ -29,11 +29,13 @@ export const FormEntryPage: FC<OnboardPageConfigParams<FormEntryPageProps>> = ({
   canContinue,
   setCanContinue,
   pageIndex,
+  ...rest
 }) => {
   const [errorFieldIds, setErrorFieldIds] = useState(new Set())
   const [formData, setFormData] = useState({})
 
   useEffect(() => {
+    console.log({ currentPage, pageIndex, errorFieldIds })
     if (currentPage == pageIndex) {
       if (errorFieldIds.size > 0) {
         setCanContinue(false)
@@ -129,6 +131,7 @@ export const FormEntryPage: FC<OnboardPageConfigParams<FormEntryPageProps>> = ({
                     totalPages: totalPages,
                     pageIndex: pageIndex,
                     props: input.props,
+                    ...rest,
                   })
                 ) : (
                   <InputField
