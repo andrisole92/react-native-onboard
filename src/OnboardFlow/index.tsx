@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useRef, useState } from 'react'
+import React, { FC, useCallback, useEffect, useRef, useState } from 'react'
 
 import {
   Dimensions,
@@ -27,11 +27,12 @@ import {
   COLOR_PRIMARY_DEFAULT,
   COLOR_SECONDARY_DEFAULT,
   DEFAULT_FORM_ENTRY_TYPES,
-  DEFAULT_PAGE_TYPES,
   HORIZONTAL_PADDING_DEFAULT,
   VERTICAL_PADDING_DEFAULT,
 } from './constants'
-import { OnboardFlowProps, PageData, PaginationProps, TextStyles } from './types'
+import { ImageCropContextProvider } from './contexts/ImageCropContext'
+import { DEFAULT_PAGE_TYPES } from './pageTypes'
+import { OnboardFlowProps, PageData, PaginationProps, StepResponseData, TextStyles } from './types'
 
 export type PageType = string
 
@@ -59,6 +60,169 @@ export interface OnboardComponents {
   PaginationComponent: FC<PaginationProps>
 }
 
+type PageWrapperProps = {
+  index: number
+  currentPageValue: number
+  pageData: PageData
+  pagesMerged: any
+  containerWidth: number
+  formElementTypes: FormElementTypesConfig
+  pageStyle: StyleProp<ViewStyle>
+  textStyle: StyleProp<TextStyle>
+  titleStyle: StyleProp<TextStyle>
+  subtitleStyle: StyleProp<TextStyle>
+  totalPages: number
+  goToNextPage: () => void
+  goToPreviousPage: () => void
+  textAlign: 'center' | 'left' | 'right'
+  customVariables: object
+  primaryColor: string
+  secondaryColor: string
+  getAssetsPublicUrl?: (string) => string
+  uploadImageFunction?: (
+    base64Image: string,
+    imageExtension?: string,
+    pathname?: string
+  ) => Promise<{ path: string; publicUrl: string }>
+  scrollEnabled: boolean
+  setScrollEnabled: React.Dispatch<React.SetStateAction<boolean>>
+  canContinue: boolean
+  setCanContinue: (value: boolean) => void
+  maxTextHeight?: number
+  setMaxTextHeight?: (height: number) => void
+  onSaveData: (data: StepResponseData, pageId: string) => void
+  getPageId: (pageData: PageData, index: number) => string
+}
+
+const PageWrapper = ({
+  index,
+  currentPageValue,
+  pageData,
+  pagesMerged,
+  containerWidth,
+  formElementTypes,
+  pageStyle,
+  textStyle,
+  titleStyle,
+  subtitleStyle,
+  totalPages,
+  goToNextPage,
+  goToPreviousPage,
+  textAlign,
+  customVariables,
+  primaryColor,
+  secondaryColor,
+  canContinue,
+  setCanContinue,
+  uploadImageFunction,
+  maxTextHeight,
+  setMaxTextHeight,
+  onSaveData,
+  getPageId,
+  setScrollEnabled,
+  scrollEnabled,
+  getAssetsPublicUrl,
+}: PageWrapperProps) => {
+  useEffect(() => {
+    if (index === currentPageValue && pageData?.dismissKeyboard) Keyboard.dismiss()
+  }, [currentPageValue, index, pageData?.dismissKeyboard])
+
+  const onSaveDataWrapper = useCallback(
+    (dataProp) => {
+      onSaveData?.(
+        dataProp.data && dataProp.source ? dataProp : { data: dataProp, source: pageData },
+        getPageId(pageData, index)
+      )
+    },
+    [getPageId, index, onSaveData, pageData]
+  )
+
+  if (pageData?.type === 'custom' && pageData) return null
+
+  return pageData.type && pagesMerged[pageData.type] ? (
+    <View key={index} style={{}}>
+      {pagesMerged[pageData.type]({
+        formElementTypes: formElementTypes,
+        style: [pageStyle, pageData.style ? (pageData.style as StyleProp<ViewStyle>) : null],
+        textStyle: [
+          textStyle,
+          pageData.textStyle ? (pageData.textStyle as StyleProp<TextStyle>) : null,
+        ],
+        titleStyle: [
+          titleStyle,
+          pageData.titleStyle ? (pageData.titleStyle as StyleProp<TextStyle>) : null,
+        ],
+        subtitleStyle: [
+          subtitleStyle,
+          pageData.subtitleStyle ? (pageData.subtitleStyle as StyleProp<TextStyle>) : null,
+        ],
+        pageData,
+        pageIndex: index,
+        currentPage: currentPageValue,
+        totalPages,
+        goToNextPage,
+        goToPreviousPage,
+        textAlign,
+        width: containerWidth,
+        props: pageData.props,
+        customVariables,
+        primaryColor,
+        secondaryColor,
+        onSaveData: onSaveDataWrapper,
+        setCanContinue,
+        canContinue,
+        uploadImageFunction,
+        getAssetsPublicUrl,
+        setScrollEnabled,
+        scrollEnabled,
+      })}
+    </View>
+  ) : (
+    <View key={index} style={{ width: containerWidth }}>
+      <Page
+        formElementTypes={formElementTypes}
+        style={[pageStyle, pageData.style ? (pageData.style as StyleProp<ViewStyle>) : null]}
+        titleStyle={[
+          titleStyle,
+          pageData.titleStyle ? (pageData.titleStyle as StyleProp<TextStyle>) : null,
+        ]}
+        subtitleStyle={[
+          subtitleStyle,
+          pageData.subtitleStyle ? (pageData.subtitleStyle as StyleProp<TextStyle>) : null,
+        ]}
+        textStyle={[
+          textStyle,
+          pageData.textStyle ? (pageData.textStyle as StyleProp<TextStyle>) : null,
+        ]}
+        pageData={pageData}
+        pageIndex={index}
+        currentPage={currentPageValue}
+        totalPages={totalPages}
+        goToNextPage={goToNextPage}
+        goToPreviousPage={goToPreviousPage}
+        textAlign={textAlign}
+        width={containerWidth}
+        maxTextHeight={maxTextHeight}
+        setMaxTextHeight={setMaxTextHeight}
+        customVariables={customVariables}
+        primaryColor={primaryColor}
+        secondaryColor={secondaryColor}
+        onSaveData={onSaveDataWrapper}
+        setCanContinue={setCanContinue}
+        canContinue={canContinue}
+        uploadImageFunction={uploadImageFunction}
+        getAssetsPublicUrl={getAssetsPublicUrl}
+        setScrollEnabled={setScrollEnabled}
+        scrollEnabled={scrollEnabled}
+      />
+    </View>
+  )
+}
+
+function insert<T>(arr: T[], index: number, newData: T[]) {
+  return [...arr.slice(0, index), ...newData, ...arr.slice(index)]
+}
+
 export const OnboardFlow: FC<OnboardFlowProps & TextStyles> = ({
   autoPlay = false,
   backgroundImageUri,
@@ -74,7 +238,7 @@ export const OnboardFlow: FC<OnboardFlowProps & TextStyles> = ({
   pageStyle,
   pageTypes = DEFAULT_PAGE_TYPES,
   formElementTypes = DEFAULT_FORM_ENTRY_TYPES,
-  pages,
+  pages: pagesProp,
   paginationColor = COLOR_SECONDARY_DEFAULT,
   paginationSelectedColor = COLOR_PRIMARY_DEFAULT,
   showDismissButton = false,
@@ -97,10 +261,15 @@ export const OnboardFlow: FC<OnboardFlowProps & TextStyles> = ({
   currentPage,
   setCurrentPage,
   uploadImageFunction,
+  getAssetsPublicUrl,
   ...props
 }) => {
+  const [pages, setPages] = useState<PageData[]>(pagesProp)
+  const [scrollEnabled, setScrollEnabled] = useState(true)
+
+  useEffect(() => setPages(pagesProp), [pagesProp])
+
   const pagesMerged = { ...DEFAULT_PAGE_TYPES, ...pageTypes }
-  const formElementsMerged = { ...DEFAULT_FORM_ENTRY_TYPES, ...formElementTypes }
   const [currentPageInternal, setCurrentPageInternal] = useState(0)
   const [modalVisible, setModalVisible] = useState(true)
   const [canContinueInternal, setCanContinueInternal] = useState(true)
@@ -124,35 +293,47 @@ export const OnboardFlow: FC<OnboardFlowProps & TextStyles> = ({
   const canContinueValue = canContinue ?? canContinueInternal
   const setCanContinueValue = setCanContinue ?? setCanContinueInternal
 
-  const onLayout = (event) => {
+  const onLayout = useCallback((event) => {
     setContainerWidth(event.nativeEvent.layout.width)
-  }
+  }, [])
 
-  function getPageId(pageData: PageData, index: number) {
+  const getPageId = useCallback((pageData: PageData, index: number) => {
     return pageData?.id ?? index + ''
-  }
+  }, [])
 
-  function handleIndexChange(item: { index: number; prevIndex: number }) {
-    if (item.index != currentPageValue) {
-      setCurrentPageValue(item.index)
-    }
-    if (item.index > item.prevIndex) {
-      onNext && onNext()
-      return
-    }
-    if (item.index < item.prevIndex) {
-      onBack && onBack()
-      return
-    }
-  }
+  const handleIndexChange = useCallback(
+    (item: { index: number; prevIndex: number }) => {
+      if (item.index != currentPageValue) {
+        setCurrentPageValue(item.index)
+      }
+      if (item.index > item.prevIndex) {
+        onNext?.()
+        return
+      }
+      if (item.index < item.prevIndex) {
+        onBack?.()
+        return
+      }
+    },
+    [currentPageValue, onBack, onNext, setCurrentPageValue]
+  )
 
-  function handleDone() {
+  const handleDone = useCallback(() => {
     setModalVisible(false)
     bottomSheetRef.current?.close()
     onDone && onDone()
-  }
+  }, [onDone])
 
-  function goToNextPage() {
+  const goToNextPage = useCallback(() => {
+    const currPage = pages[currentPageValue]
+    if (currPage?.isConditional) {
+      setPages((val) => [
+        ...val.slice(0, currentPageValue + 1),
+        ...currPage.pages,
+        ...val.slice(currentPageValue + 1),
+      ])
+    }
+
     if (currentPageValue >= pages?.length - 1) {
       handleDone()
       return
@@ -160,18 +341,18 @@ export const OnboardFlow: FC<OnboardFlowProps & TextStyles> = ({
     const nextIndex = swiperRef.current?.getCurrentIndex() + 1
     setCurrentPageValue(nextIndex)
     swiperRef.current?.scrollToIndex({ index: nextIndex })
-  }
+  }, [currentPageValue, handleDone, pages, setCurrentPageValue])
 
-  function goToPreviousPage() {
+  const goToPreviousPage = useCallback(() => {
     const nextIndex = swiperRef.current?.getCurrentIndex() - 1
     if (nextIndex < 0) {
       return
     }
     setCurrentPageValue(nextIndex)
     swiperRef.current?.scrollToIndex({ index: nextIndex })
-  }
+  }, [setCurrentPageValue])
 
-  function DismissButton() {
+  const DismissButton = useCallback(() => {
     return (
       <View style={[styles.dismissIconContainer]}>
         <TouchableOpacity onPress={handleDone}>
@@ -179,24 +360,87 @@ export const OnboardFlow: FC<OnboardFlowProps & TextStyles> = ({
         </TouchableOpacity>
       </View>
     )
-  }
+  }, [dismissButtonStyle, handleDone])
 
-  function updateMaxTextHeight(height: number) {
-    if (height > maxTextHeight) {
-      setMaxTextHeight(height)
-    }
-  }
+  const updateMaxTextHeight = useCallback(
+    (height: number) => {
+      if (height > maxTextHeight) {
+        setMaxTextHeight(height)
+      }
+    },
+    [maxTextHeight]
+  )
 
   const content = (
-    <ImageBackground
-      source={{ uri: backgroundImageUri }}
-      resizeMode="cover"
-      style={styles.backgroundImage}
-    >
-      <SafeAreaView style={[styles.container, style]} onLayout={onLayout}>
-        {showDismissButton ? <DismissButton /> : null}
-        {showHeader && HeaderComponent ? (
-          <HeaderComponent
+    <ImageCropContextProvider>
+      <ImageBackground
+        source={{ uri: backgroundImageUri }}
+        resizeMode="cover"
+        style={styles.backgroundImage}
+      >
+        <SafeAreaView style={[styles.container, style]} onLayout={onLayout}>
+          {showDismissButton ? <DismissButton /> : null}
+          {showHeader && HeaderComponent ? (
+            <HeaderComponent
+              paginationSelectedColor={paginationSelectedColor}
+              paginationColor={paginationColor}
+              goToPreviousPage={goToPreviousPage}
+              pages={pages}
+              style={[styles.footer, !showFooter ? { opacity: 0.0 } : null]}
+              Components={components}
+              currentPage={currentPageValue}
+              goToNextPage={goToNextPage}
+              canContinue={canContinueValue}
+              setCanContinue={setCanContinueValue}
+              showFooter={showFooter}
+            />
+          ) : null}
+          <View style={styles.content}>
+            <SwiperFlatList
+              disableGesture={!enableScroll ? true : !canContinueValue}
+              onChangeIndex={handleIndexChange}
+              ref={swiperRef}
+              index={currentPageValue}
+              autoplay={autoPlay}
+              scrollEnabled={scrollEnabled}
+            >
+              {pages?.map((pageData, index) => {
+                return (
+                  <PageWrapper
+                    key={pageData?.title}
+                    pagesMerged={pagesMerged}
+                    getPageId={getPageId}
+                    formElementTypes={formElementTypes}
+                    pageStyle={pageStyle}
+                    titleStyle={titleStyle}
+                    subtitleStyle={subtitleStyle}
+                    textStyle={textStyle}
+                    index={index}
+                    pageData={pageData}
+                    currentPageValue={currentPageValue}
+                    totalPages={pages?.length}
+                    goToNextPage={goToNextPage}
+                    goToPreviousPage={goToPreviousPage}
+                    textAlign={textAlign}
+                    containerWidth={containerWidth}
+                    maxTextHeight={maxTextHeight}
+                    setMaxTextHeight={updateMaxTextHeight}
+                    customVariables={customVariables}
+                    primaryColor={primaryColor}
+                    secondaryColor={secondaryColor}
+                    onSaveData={onSaveData}
+                    setCanContinue={setCanContinueValue}
+                    canContinue={canContinueValue}
+                    uploadImageFunction={uploadImageFunction}
+                    getAssetsPublicUrl={getAssetsPublicUrl}
+                    setScrollEnabled={setScrollEnabled}
+                    scrollEnabled={scrollEnabled}
+                  />
+                )
+              })}
+            </SwiperFlatList>
+          </View>
+          <FooterComponent
             paginationSelectedColor={paginationSelectedColor}
             paginationColor={paginationColor}
             goToPreviousPage={goToPreviousPage}
@@ -208,143 +452,19 @@ export const OnboardFlow: FC<OnboardFlowProps & TextStyles> = ({
             canContinue={canContinueValue}
             setCanContinue={setCanContinueValue}
             showFooter={showFooter}
+            primaryButtonStyle={primaryButtonStyle}
+            primaryButtonTextStyle={primaryButtonTextStyle}
           />
-        ) : null}
-        <View style={styles.content}>
-          <SwiperFlatList
-            disableGesture={!enableScroll ? true : !canContinueValue}
-            onChangeIndex={handleIndexChange}
-            ref={swiperRef}
-            index={currentPageValue}
-            autoplay={autoPlay}
-          >
-            {pages?.map((pageData, index) => {
-              if (pageData?.type === 'custom' && pageData) return null
-
-              useEffect(() => {
-                if (index === currentPageValue && pageData?.dismissKeyboard) Keyboard.dismiss()
-              }, [index, currentPageValue])
-
-              return pageData.type && pagesMerged[pageData.type] ? (
-                <View key={index} style={{ width: containerWidth }}>
-                  {pagesMerged[pageData.type]({
-                    formElementTypes: formElementTypes,
-                    style: [
-                      pageStyle,
-                      pageData.style ? (pageData.style as StyleProp<ViewStyle>) : null,
-                    ],
-                    textStyle: [
-                      textStyle,
-                      pageData.textStyle ? (pageData.textStyle as StyleProp<TextStyle>) : null,
-                    ],
-                    titleStyle: [
-                      titleStyle,
-                      pageData.titleStyle ? (pageData.titleStyle as StyleProp<TextStyle>) : null,
-                    ],
-                    subtitleStyle: [
-                      subtitleStyle,
-                      pageData.subtitleStyle
-                        ? (pageData.subtitleStyle as StyleProp<TextStyle>)
-                        : null,
-                    ],
-                    pageData,
-                    pageIndex: index,
-                    currentPage: currentPageValue,
-                    totalPages: pages?.length,
-                    goToNextPage,
-                    goToPreviousPage,
-                    textAlign,
-                    width: containerWidth,
-                    props: pageData.props,
-                    customVariables,
-                    primaryColor,
-                    secondaryColor,
-                    onSaveData: (data) => {
-                      if (onSaveData) {
-                        onSaveData(
-                          data.data && data.source ? data : { data: data, source: pageData },
-                          getPageId(pageData, index)
-                        )
-                      }
-                    },
-                    setCanContinue: setCanContinueValue,
-                    canContinue: canContinueValue,
-                    uploadImageFunction,
-                  })}
-                </View>
-              ) : (
-                <View key={index} style={{ width: containerWidth }}>
-                  <Page
-                    formElementTypes={formElementTypes}
-                    style={[
-                      pageStyle,
-                      pageData.style ? (pageData.style as StyleProp<ViewStyle>) : null,
-                    ]}
-                    titleStyle={[
-                      titleStyle,
-                      pageData.titleStyle ? (pageData.titleStyle as StyleProp<TextStyle>) : null,
-                    ]}
-                    subtitleStyle={[
-                      subtitleStyle,
-                      pageData.subtitleStyle
-                        ? (pageData.subtitleStyle as StyleProp<TextStyle>)
-                        : null,
-                    ]}
-                    textStyle={[
-                      textStyle,
-                      pageData.textStyle ? (pageData.textStyle as StyleProp<TextStyle>) : null,
-                    ]}
-                    pageData={pageData}
-                    pageIndex={index}
-                    currentPage={currentPageValue}
-                    totalPages={pages?.length}
-                    goToNextPage={goToNextPage}
-                    goToPreviousPage={goToPreviousPage}
-                    textAlign={textAlign}
-                    width={containerWidth}
-                    maxTextHeight={maxTextHeight}
-                    setMaxTextHeight={updateMaxTextHeight}
-                    customVariables={customVariables}
-                    primaryColor={primaryColor}
-                    secondaryColor={secondaryColor}
-                    onSaveData={(data) => {
-                      if (onSaveData) {
-                        onSaveData(
-                          data.data && data.source ? data : { data: data, source: pageData },
-                          getPageId(pageData, index)
-                        )
-                      }
-                    }}
-                    setCanContinue={setCanContinueValue}
-                    canContinue={canContinueValue}
-                    uploadImageFunction={uploadImageFunction}
-                  />
-                </View>
-              )
-            })}
-          </SwiperFlatList>
-        </View>
-        <FooterComponent
-          paginationSelectedColor={paginationSelectedColor}
-          paginationColor={paginationColor}
-          goToPreviousPage={goToPreviousPage}
-          pages={pages}
-          style={[styles.footer, !showFooter ? { opacity: 0.0 } : null]}
-          Components={components}
-          currentPage={currentPageValue}
-          goToNextPage={goToNextPage}
-          canContinue={canContinueValue}
-          setCanContinue={setCanContinueValue}
-          showFooter={showFooter}
-          primaryButtonStyle={primaryButtonStyle}
-          primaryButtonTextStyle={primaryButtonTextStyle}
-        />
-      </SafeAreaView>
-    </ImageBackground>
+        </SafeAreaView>
+      </ImageBackground>
+    </ImageCropContextProvider>
   )
-
   if (fullscreenModal === true || type === 'fullscreen') {
-    return <Modal visible={modalVisible}>{content}</Modal>
+    return (
+      <Modal hardwareAccelerated visible={modalVisible}>
+        {content}
+      </Modal>
+    )
   }
 
   if (type === 'bottom-sheet') {

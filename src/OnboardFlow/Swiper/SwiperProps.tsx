@@ -10,6 +10,7 @@ export type SwiperFlatListRefProps = {
 }
 
 export type SwiperFlatListProps<T> = Partial<FlatListProps<T>> & {
+  scrollEnabled?: boolean
   /**
    * Data to use in renderItem
    * not required if children is used
@@ -124,9 +125,7 @@ export type SwiperFlatListProps<T> = Partial<FlatListProps<T>> & {
   overScrollMode?: 'always' | 'auto' | 'never'
   // overScrollMode: ScrollViewProps['overScrollMode'];
 
-
   viewabilityConfig?: ViewabilityConfig
-
 
   //#endregion
 

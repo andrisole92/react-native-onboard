@@ -1,5 +1,12 @@
-import React from 'react'
-import { Dimensions, FlatList, FlatListProps, Platform } from 'react-native'
+import React, { useCallback } from 'react'
+import {
+  Dimensions,
+  FlatList,
+  FlatListProps,
+  Platform,
+  StyleSheet,
+  useWindowDimensions,
+} from 'react-native'
 
 import { SwiperFlatListProps, SwiperFlatListRefProps } from './SwiperProps'
 
@@ -36,10 +43,12 @@ export const SwiperFlatList = React.forwardRef(
       disableGesture = false,
       e2eID,
       overScrollMode,
+      scrollEnabled: scrollEnabledProp = true,
       ...props
     }: SwiperFlatListProps<T1>,
     ref: React.Ref<SwiperFlatListRefProps>
   ) => {
+    const { width } = useWindowDimensions()
     let _data: unknown[] = []
     let _renderItem: FlatListProps<any>['renderItem']
 
@@ -56,7 +65,7 @@ export const SwiperFlatList = React.forwardRef(
     const size = _data.length
     // Items to render in the initial batch.
     const _initialNumToRender = renderAll ? size : 1
-    const [currentIndex, setCurrentIndex] = React.useState(index)
+    const [currentIndex, setCurrentIndex] = React.useState(5)
     const [previousIndex, setPreviousIndex] = React.useState(index)
 
     const [ignoreOnMomentumScrollEnd, setIgnoreOnMomentumScrollEnd] = React.useState(false)
@@ -71,51 +80,56 @@ export const SwiperFlatList = React.forwardRef(
 
     const _onChangeIndex = React.useCallback(
       ({ index: _index, prevIndex: _prevIndex }: { index: number; prevIndex: number }) => {
-        if (_index !== _prevIndex && _index != lastIndexChange) {
+        if (
+          (_index !== _prevIndex && _index != lastIndexChange) ||
+          (_index === 1 && _prevIndex && 1)
+        ) {
           setLastIndexChange(_index)
           onChangeIndex?.({ index: _index, prevIndex: _prevIndex })
         }
       },
-      [onChangeIndex]
+      [lastIndexChange, onChangeIndex]
     )
 
-    const _scrollToIndex = (params: ScrollToIndex, extra: ScrollToIndexInternal) => {
-      const { index: indexToScroll, animated = true } = params
-      const newParams = { animated, index: indexToScroll }
+    const _scrollToIndex = useCallback(
+      (params: ScrollToIndex, extra: ScrollToIndexInternal) => {
+        const { index: indexToScroll, animated = true } = params
+        const newParams = { animated, index: indexToScroll }
 
-      setIgnoreOnMomentumScrollEnd(true)
+        setIgnoreOnMomentumScrollEnd(true)
 
-      const next = {
-        index: indexToScroll,
-        prevIndex: previousIndex,
-      }
+        const next = {
+          index: indexToScroll,
+          prevIndex: previousIndex,
+        }
 
-      if (currentIndex !== next.index && previousIndex !== next.prevIndex) {
-        setCurrentIndex(next.index)
-        setPreviousIndex(next.prevIndex)
-      } else if (currentIndex !== next.index) {
-        setCurrentIndex(next.index)
-      } else if (previousIndex !== next.prevIndex) {
-        setPreviousIndex(next.prevIndex)
-      }
+        if (currentIndex !== next.index && previousIndex !== next.prevIndex) {
+          setCurrentIndex(next.index)
+          setPreviousIndex(next.prevIndex)
+        } else if (currentIndex !== next.index) {
+          setCurrentIndex(next.index)
+        } else if (previousIndex !== next.prevIndex) {
+          setPreviousIndex(next.prevIndex)
+        }
 
-      if (extra.useOnChangeIndex) {
-        _onChangeIndex({ index: next.index, prevIndex: next.prevIndex })
-      }
+        if (extra.useOnChangeIndex) {
+          _onChangeIndex({ index: next.index, prevIndex: next.prevIndex })
+        }
 
-      // When execute "scrollToIndex", we ignore the method "onMomentumScrollEnd"
-      // because it not working on Android
-      // https://github.com/facebook/react-native/issues/21718
-      flatListElement?.current?.scrollToIndex(newParams)
-    }
+        // When execute "scrollToIndex", we ignore the method "onMomentumScrollEnd"
+        // because it not working on Android
+        // https://github.com/facebook/react-native/issues/21718
+        flatListElement?.current?.scrollToIndex(newParams)
+      },
+      [_onChangeIndex, currentIndex, previousIndex]
+    )
 
     // change the index when the user swipe the items
     React.useEffect(() => {
       if (scrollEnabled) {
         _onChangeIndex({ index: currentIndex, prevIndex: previousIndex })
       }
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentIndex, previousIndex])
+    }, [_onChangeIndex, currentIndex, previousIndex, scrollEnabled])
 
     React.useImperativeHandle(ref, () => ({
       scrollToIndex: (item: ScrollToIndex) => {
@@ -177,48 +191,38 @@ export const SwiperFlatList = React.forwardRef(
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [autoplay, currentIndex, _data.length])
 
-    const _onMomentumScrollEnd: FlatListProps<unknown>['onMomentumScrollEnd'] = (event) => {
-      // NOTE: Method not executed when call "flatListElement?.current?.scrollToIndex"
-      if (ignoreOnMomentumScrollEnd) {
-        setIgnoreOnMomentumScrollEnd(false)
-        return
-      }
-      if (autoplay && !autoPlayDisturbed) {
-        setAutoPlayDisturbed(true)
-      }
-      onMomentumScrollEnd?.({ index: currentIndex }, event)
-    }
-
-    const _onViewableItemsChanged = React.useMemo<FlatListProps<unknown>['onViewableItemsChanged']>(
-      () => (params) => {
-        const { changed } = params
-        const newItem = changed?.[FIRST_INDEX]
-        if (newItem !== undefined) {
-          const nextIndex = newItem.index as number
-          if (newItem.isViewable) {
-            if (nextIndex > currentIndex) {
-              setPreviousIndex(Math.max(0, nextIndex - 1))
-            } else {
-              setPreviousIndex(Math.min(_data.length - 1, nextIndex + 1))
-            }
-            setCurrentIndex(nextIndex)
-          }
-        }
-        onViewableItemsChanged?.(params)
-      },
-      // eslint-disable-next-line react-hooks/exhaustive-deps
+    const keyExtractor: FlatListProps<unknown>['keyExtractor'] = useCallback(
+      (_item, _index) => _index.toString(),
       []
     )
 
-    const keyExtractor: FlatListProps<unknown>['keyExtractor'] = (_item, _index) =>
-      _index.toString()
-    const onScrollToIndexFailed: FlatListProps<unknown>['onScrollToIndexFailed'] = (info) =>
-      setTimeout(() =>
-        _scrollToIndex({ index: info.index, animated: false }, { useOnChangeIndex: true })
-      )
+    const onScrollToIndexFailed: FlatListProps<unknown>['onScrollToIndexFailed'] = useCallback(
+      (info) =>
+        setTimeout(() =>
+          _scrollToIndex({ index: info.index, animated: false }, { useOnChangeIndex: true })
+        ),
+      [_scrollToIndex]
+    )
+
+    const onMomentumScrollEndWrapper = useCallback(
+      ({
+        nativeEvent: {
+          contentOffset: { x },
+        },
+      }) => {
+        // if (ignoreOnMomentumScrollEnd) return
+
+        const newIndex = width > 0 ? Math.ceil(x / width) : 0
+        if (newIndex !== currentIndex) {
+          setPreviousIndex(currentIndex)
+          setCurrentIndex(newIndex)
+        }
+      },
+      [currentIndex, width]
+    )
 
     const flatListProps = {
-      scrollEnabled,
+      scrollEnabled: scrollEnabled && scrollEnabledProp,
       ref: flatListElement,
       keyExtractor,
       horizontal: !vertical,
@@ -227,7 +231,6 @@ export const SwiperFlatList = React.forwardRef(
       pagingEnabled: true,
       overScrollMode,
       ...props,
-      onMomentumScrollEnd: _onMomentumScrollEnd,
       onScrollToIndexFailed: onScrollToIndexFailed,
       data: _data,
       renderItem: _renderItem,
@@ -238,7 +241,7 @@ export const SwiperFlatList = React.forwardRef(
         itemVisiblePercentThreshold: ITEM_VISIBLE_PERCENT_THRESHOLD,
         ...viewabilityConfig,
       },
-      onViewableItemsChanged: _onViewableItemsChanged,
+      onMomentumScrollEnd: onMomentumScrollEndWrapper,
       testID: e2eID,
     }
 
@@ -265,6 +268,16 @@ export const SwiperFlatList = React.forwardRef(
     )
   }
 )
+
+const styles = StyleSheet.create({
+  viewPager: {
+    flex: 1,
+  },
+  page: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+})
 
 // https://gist.github.com/Venryx/7cff24b17867da305fff12c6f8ef6f96
 type Handle<T> = T extends React.ForwardRefExoticComponent<React.RefAttributes<infer T2>>

@@ -1,7 +1,15 @@
-import React, { FC } from 'react'
-import { KeyboardAvoidingView, StyleProp, StyleSheet, ViewStyle, TextStyle } from 'react-native'
-import { OnboardComponents } from '../index'
+import React, { FC, useMemo } from 'react'
+import {
+  KeyboardAvoidingView,
+  StyleProp,
+  StyleSheet,
+  TextStyle,
+  View,
+  ViewStyle,
+  useWindowDimensions,
+} from 'react-native'
 import { PRIMARY_BUTTON_TEXT_DEFAULT, PRIMARY_BUTTON_TEXT_LAST_PAGE_DEFAULT } from '../constants'
+import { OnboardComponents } from '../index'
 import { PageData } from '../types'
 
 export interface FooterProps {
@@ -17,7 +25,7 @@ export interface FooterProps {
   setCanContinue?: (value: boolean) => void
   showFooter?: boolean
   showHeader?: boolean
-  primaryButtonStyle?: StyleProp<ViewStyle>,
+  primaryButtonStyle?: StyleProp<ViewStyle>
   primaryButtonTextStyle?: StyleProp<TextStyle>
   props?: any
 }
@@ -37,6 +45,7 @@ export const Footer: FC<FooterProps> = ({
   primaryButtonTextStyle,
   ...props
 }) => {
+  const isConditional = useMemo(() => pages?.[currentPage]?.isConditional, [currentPage, pages])
   function getPrimaryButtonTitle() {
     if (pages && pages[currentPage] && pages[currentPage].primaryButtonTitle) {
       return pages[currentPage].primaryButtonTitle
@@ -56,15 +65,45 @@ export const Footer: FC<FooterProps> = ({
         currentPage={currentPage}
         totalPages={totalPages}
       />
-      <Components.PrimaryButtonComponent
-        text={getPrimaryButtonTitle()}
-        currentPage={currentPage}
-        totalPages={totalPages}
-        goToNextPage={goToNextPage}
-        disabled={!canContinue}
-        style={primaryButtonStyle}
-        textStyle={primaryButtonTextStyle}
-      />
+      <View style={{ display: 'flex', flexDirection: 'row', width: '100%' }}>
+        {isConditional ? (
+          <>
+            <Components.SecondaryButtonComponent
+              text={'No'}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              disabled={!canContinue}
+              style={{
+                marginBottom: 0,
+                width: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+              onPress={goToNextPage}
+            />
+            <Components.PrimaryButtonComponent
+              text={'Yes'}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              goToNextPage={goToNextPage}
+              disabled={!canContinue}
+              style={{ ...primaryButtonStyle, width: '50%' }}
+              textStyle={primaryButtonTextStyle}
+            />
+          </>
+        ) : (
+          <Components.PrimaryButtonComponent
+            text={getPrimaryButtonTitle()}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            goToNextPage={goToNextPage}
+            disabled={!canContinue}
+            style={primaryButtonStyle}
+            textStyle={primaryButtonTextStyle}
+          />
+        )}
+      </View>
     </KeyboardAvoidingView>
   )
 }

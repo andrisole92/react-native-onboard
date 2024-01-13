@@ -28,11 +28,14 @@ export interface PageProps {
   secondaryColor?: string
   canContinue?: boolean
   setCanContinue?: (value: boolean) => void
+  getAssetsPublicUrl?: (string) => string
   uploadImageFunction?: (
     base64Image: string,
     imageExtension?: string,
-    bucketName?: string
-  ) => Promise<string | null>
+    pathname?: string
+  ) => Promise<{ path: string; publicUrl: string }>
+  setScrollEnabled: React.Dispatch<React.SetStateAction<boolean>>
+  scrollEnabled: boolean
 }
 
 export const Page: FC<PageProps & TextStyles> = ({
@@ -54,6 +57,7 @@ export const Page: FC<PageProps & TextStyles> = ({
   onSaveData,
   primaryColor,
   secondaryColor,
+  setScrollEnabled,
 }) => {
   const [imageHeight, setImageHeight] = useState(0)
   const [containerHeight, setContainerHeight] = useState<number>(

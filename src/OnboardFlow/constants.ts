@@ -1,9 +1,9 @@
+import { FormElementTypesConfig } from '.'
 import { AvatarInputField } from './components/AvatarInputField'
+import { GenderSelectField } from './components/GenderSelectField'
+import { ImageGridInputField } from './components/ImageGridInputField'
 import { InputField } from './components/InputField'
-import { FormEntryPage } from './pages/FormEntryPage'
-import { MultipleChoicePage } from './pages/MultipleChoicePage'
-import { PhoneNumberEntryPage } from './pages/PhoneNumberEntryPage'
-import { PhoneNumberVerificationPage } from './pages/PhoneNumberVerificationPage'
+import { TextareaField } from './components/TextareaField'
 
 export const PRIMARY_BUTTON_TEXT_DEFAULT = 'Continue'
 export const PRIMARY_BUTTON_TEXT_LAST_PAGE_DEFAULT = 'Get started'
@@ -22,17 +22,13 @@ export const COLOR_PRIMARY_DEFAULT = '#000000'
 
 export const TEXT_ALIGN_DEFAULT = 'center'
 
-export const DEFAULT_PAGE_TYPES = {
-  phoneNumberEntry: PhoneNumberEntryPage,
-  phoneNumberVerification: PhoneNumberVerificationPage,
-  formEntry: FormEntryPage,
-  multipleChoice: MultipleChoicePage,
-}
-
-export const DEFAULT_FORM_ENTRY_TYPES = {
+export const DEFAULT_FORM_ENTRY_TYPES: FormElementTypesConfig = {
   text: InputField,
+  textarea: TextareaField,
   number: InputField,
   email: InputField,
   password: InputField,
   avatar: AvatarInputField,
+  imageGrid: ImageGridInputField,
+  gender: GenderSelectField,
 }

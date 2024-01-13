@@ -1,7 +1,7 @@
 import React, { FC, useEffect, useRef, useState } from 'react'
 import { ColorValue, StyleSheet, Text, TextInput, View } from 'react-native'
-import { HORIZONTAL_PADDING_DEFAULT, VERTICAL_PADDING_DEFAULT } from '../../constants'
-import { TextStyles } from '../../types'
+import { HORIZONTAL_PADDING_DEFAULT, VERTICAL_PADDING_DEFAULT } from '../constants'
+import { TextStyles } from '../types'
 
 export interface FormEntryField {
   label?: string
@@ -28,11 +28,10 @@ export interface FormEntryField {
   pageIndex?: number
   totalPages?: number
   props?: any
-  initialValue?: string
 }
 
 const FAIL_SILENTLY = 'failedSilently'
-export const InputField: FC<FormEntryField & TextStyles> = ({
+export const TextareaField: FC<FormEntryField & TextStyles> = ({
   label,
   placeHolder,
   type,
@@ -53,12 +52,11 @@ export const InputField: FC<FormEntryField & TextStyles> = ({
   autoCapitalize,
   currentPage,
   pageIndex,
-  initialValue,
 }) => {
   const inputRef = useRef(null)
   const [errorMessage, setErrorMessage] = useState('')
   const [isFocused, setIsFocused] = useState(false)
-  const [text, setText] = useState(String(prefill) ?? '')
+  const [text, setText] = useState(prefill ?? '')
 
   useEffect(() => {
     onSaveData?.({ value: text, id })
@@ -139,30 +137,14 @@ export const InputField: FC<FormEntryField & TextStyles> = ({
     if (isRequired) {
       validateTextBasedOnInput(text, false)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (
-    <View style={{ marginTop: -6 }}>
-      {/* <Text
-        style={[
-          {
-            color: secondaryColor,
-            fontSize: 12,
-            backgroundColor: backgroundColor ?? '#FFFFFF',
-            alignSelf: 'flex-start',
-            position: 'relative',
-            paddingHorizontal: 4,
-            bottom: -22,
-            left: 12,
-            zIndex: 5,
-            opacity: isFocused ? 1 : 0.0,
-          },
-          textStyle,
-        ]}
-      >
-        {label}
-      </Text> */}
+    <View style={{}}>
       <TextInput
+        multiline
+        numberOfLines={5}
         ref={inputRef}
         autoCapitalize={autoCapitalize}
         autoFocus={autoFocus}
@@ -181,8 +163,9 @@ export const InputField: FC<FormEntryField & TextStyles> = ({
         style={[
           styles.option,
           {
-            paddingVertical: VERTICAL_PADDING_DEFAULT,
-            paddingHorizontal: HORIZONTAL_PADDING_DEFAULT,
+            paddingHorizontal: 16,
+            paddingTop: 16,
+            paddingBottom: 16,
             marginTop: VERTICAL_PADDING_DEFAULT,
           },
           { borderColor: isFocused ? primaryColor : secondaryColor },
@@ -196,6 +179,7 @@ export const InputField: FC<FormEntryField & TextStyles> = ({
             setErrorMessage(error)
           }
           setText(string)
+
           if (!getErrorMessage) {
             if (isRequired) {
               validateTextBasedOnInput(string, false)
@@ -213,11 +197,11 @@ export const InputField: FC<FormEntryField & TextStyles> = ({
 const styles = StyleSheet.create({
   option: {
     width: '100%',
-    height: 60,
     borderWidth: 1,
     borderColor: '#E6E6E6',
     borderRadius: 12,
     fontSize: 18,
+    height: 150,
   },
   errorText: {
     fontSize: 14,

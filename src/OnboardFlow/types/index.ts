@@ -37,6 +37,8 @@ export interface PageData extends FlowItemData {
   style?: StyleProp<ViewStyle> | any
   props?: any
   textStyle?: StyleProp<TextStyle> | undefined
+  isConditional?: boolean
+  pages?: PageData[]
 }
 
 export interface TextStyles {
@@ -55,19 +57,21 @@ export interface OnboardFlowProps {
    */
   fullscreenModal?: boolean
   onBack?: () => void
-  onDone?: () => void
   onNext?: () => void
+  onDone?: () => void
+  x?: () => void
   onSaveData?: (data: StepResponseData, pageId: string) => void
   canContinue?: boolean
   setCanContinue?: (value: boolean) => void
   pageStyle?: StyleProp<ViewStyle> | undefined
   pageTypes?: OnboardPageTypesConfig
   formElementTypes?: FormElementTypesConfig
-  uploadImageFunction: (
+  getAssetsPublicUrl?: (string) => string
+  uploadImageFunction?: (
     base64Image: string,
     imageExtension?: string,
-    bucketName?: string
-  ) => Promise<string | null>
+    pathname?: string
+  ) => Promise<{ path: string; publicUrl: string }>
   pages?: PageData[]
   paginationColor?: string
   paginationSelectedColor?: string
