@@ -33,6 +33,7 @@ export interface FormEntryField {
   pageIndex?: number
   totalPages?: number
   props?: any
+  deleteImage?: (string) => void
   getAssetsPublicUrl?: (string) => string
   uploadImageFunction?: (
     base64Image: string,

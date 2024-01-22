@@ -34,6 +34,7 @@ type FieldWrapperProps = {
   customVariables?: object
   maxTextHeight?: number
   setMaxTextHeight?: (height: number) => void
+  deleteImage?: (string) => void
   getAssetsPublicUrl?: (string) => string
   uploadImageFunction?: (
     base64Image: string,
@@ -62,6 +63,7 @@ const FieldWrapper = ({
   style,
   textStyle,
   setScrollEnabled,
+  deleteImage,
   ...rest
 }: FieldWrapperProps) => {
   const [hasError, setHasError] = useState(false)
@@ -132,6 +134,7 @@ const FieldWrapper = ({
           pageIndex: pageIndex,
           props: input.props,
           setScrollEnabled,
+          deleteImage,
           ...rest,
         })
       ) : (

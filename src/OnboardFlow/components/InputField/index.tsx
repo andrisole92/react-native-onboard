@@ -21,6 +21,7 @@ export interface FormEntryField {
   canContinue?: boolean
   setCanContinue?: (value: boolean) => void
   setHasError?: (value: boolean) => void
+  setScrollEnabled?: (boolean) => void
   autoFocus?: boolean
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters' | undefined
   backgroundColor?: ColorValue
@@ -58,7 +59,7 @@ export const InputField: FC<FormEntryField & TextStyles> = ({
   const inputRef = useRef(null)
   const [errorMessage, setErrorMessage] = useState('')
   const [isFocused, setIsFocused] = useState(false)
-  const [text, setText] = useState(String(prefill) ?? '')
+  const [text, setText] = useState(prefill ? String(prefill) : '')
 
   useEffect(() => {
     onSaveData?.({ value: text, id })

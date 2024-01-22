@@ -65,7 +65,7 @@ export const SwiperFlatList = React.forwardRef(
     const size = _data.length
     // Items to render in the initial batch.
     const _initialNumToRender = renderAll ? size : 1
-    const [currentIndex, setCurrentIndex] = React.useState(5)
+    const [currentIndex, setCurrentIndex] = React.useState(index)
     const [previousIndex, setPreviousIndex] = React.useState(index)
 
     const [ignoreOnMomentumScrollEnd, setIgnoreOnMomentumScrollEnd] = React.useState(false)

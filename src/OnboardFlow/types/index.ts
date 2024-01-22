@@ -66,6 +66,7 @@ export interface OnboardFlowProps {
   pageStyle?: StyleProp<ViewStyle> | undefined
   pageTypes?: OnboardPageTypesConfig
   formElementTypes?: FormElementTypesConfig
+  deleteImage?: (string) => void
   getAssetsPublicUrl?: (string) => string
   uploadImageFunction?: (
     base64Image: string,

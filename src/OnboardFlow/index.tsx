@@ -78,6 +78,7 @@ type PageWrapperProps = {
   customVariables: object
   primaryColor: string
   secondaryColor: string
+  deleteImage?: (string) => void
   getAssetsPublicUrl?: (string) => string
   uploadImageFunction?: (
     base64Image: string,
@@ -122,6 +123,7 @@ const PageWrapper = ({
   setScrollEnabled,
   scrollEnabled,
   getAssetsPublicUrl,
+  deleteImage,
 }: PageWrapperProps) => {
   useEffect(() => {
     if (index === currentPageValue && pageData?.dismissKeyboard) Keyboard.dismiss()
@@ -173,6 +175,7 @@ const PageWrapper = ({
         canContinue,
         uploadImageFunction,
         getAssetsPublicUrl,
+        deleteImage,
         setScrollEnabled,
         scrollEnabled,
       })}
@@ -214,6 +217,7 @@ const PageWrapper = ({
         getAssetsPublicUrl={getAssetsPublicUrl}
         setScrollEnabled={setScrollEnabled}
         scrollEnabled={scrollEnabled}
+        deleteImage={deleteImage}
       />
     </View>
   )
@@ -262,6 +266,7 @@ export const OnboardFlow: FC<OnboardFlowProps & TextStyles> = ({
   setCurrentPage,
   uploadImageFunction,
   getAssetsPublicUrl,
+  deleteImage,
   ...props
 }) => {
   const [pages, setPages] = useState<PageData[]>(pagesProp)
@@ -272,7 +277,7 @@ export const OnboardFlow: FC<OnboardFlowProps & TextStyles> = ({
   const pagesMerged = { ...DEFAULT_PAGE_TYPES, ...pageTypes }
   const [currentPageInternal, setCurrentPageInternal] = useState(0)
   const [modalVisible, setModalVisible] = useState(true)
-  const [canContinueInternal, setCanContinueInternal] = useState(true)
+  const [canContinueInternal, setCanContinueInternal] = useState(false)
   const swiperRef = useRef<SwiperFlatListRefProps>()
   const [containerWidth, setContainerWidth] = useState<number>(Dimensions.get('window').width ?? 0)
   const windowHeight = Dimensions.get('window').height
@@ -407,6 +412,7 @@ export const OnboardFlow: FC<OnboardFlowProps & TextStyles> = ({
               {pages?.map((pageData, index) => {
                 return (
                   <PageWrapper
+                    deleteImage={deleteImage}
                     key={pageData?.title}
                     pagesMerged={pagesMerged}
                     getPageId={getPageId}

@@ -1,9 +1,10 @@
 import { FormElementTypesConfig } from '.'
 import { AvatarInputField } from './components/AvatarInputField'
+import { DateTimeField } from './components/DateTimeField'
 import { GenderSelectField } from './components/GenderSelectField'
 import { ImageGridInputField } from './components/ImageGridInputField'
 import { InputField } from './components/InputField'
-import { TextareaField } from './components/TextareaField'
+import TextareaField from './components/TextareaField'
 
 export const PRIMARY_BUTTON_TEXT_DEFAULT = 'Continue'
 export const PRIMARY_BUTTON_TEXT_LAST_PAGE_DEFAULT = 'Get started'
@@ -25,6 +26,7 @@ export const TEXT_ALIGN_DEFAULT = 'center'
 export const DEFAULT_FORM_ENTRY_TYPES: FormElementTypesConfig = {
   text: InputField,
   textarea: TextareaField,
+  date: DateTimeField,
   number: InputField,
   email: InputField,
   password: InputField,

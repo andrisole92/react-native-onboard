@@ -31,6 +31,7 @@ export interface FormEntryField {
 }
 
 const FAIL_SILENTLY = 'failedSilently'
+
 export const TextareaField: FC<FormEntryField & TextStyles> = ({
   label,
   placeHolder,
@@ -209,3 +210,5 @@ const styles = StyleSheet.create({
     paddingTop: 8,
   },
 })
+
+export default TextareaField

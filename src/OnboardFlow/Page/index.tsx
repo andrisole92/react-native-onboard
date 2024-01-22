@@ -28,6 +28,7 @@ export interface PageProps {
   secondaryColor?: string
   canContinue?: boolean
   setCanContinue?: (value: boolean) => void
+  deleteImage?: (string) => void
   getAssetsPublicUrl?: (string) => string
   uploadImageFunction?: (
     base64Image: string,

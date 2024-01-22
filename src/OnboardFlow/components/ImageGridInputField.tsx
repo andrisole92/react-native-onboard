@@ -3,10 +3,11 @@ import { Image } from 'expo-image'
 import * as ImagePicker from 'expo-image-picker'
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react'
 import IconCameraF from '../../../static/assets/svg/camera-f.svg'
-// import IconsCrossSmall from '../../../static/assets/svg/cross-small.svg'
+import IconsCrossSmall from '../../../static/assets/svg/cross-small.svg'
 
 import {
   ActivityIndicator,
+  Alert,
   ColorValue,
   Pressable,
   StyleSheet,
@@ -44,13 +45,14 @@ export interface FormEntryField {
   pageIndex?: number
   totalPages?: number
   props?: any
+  deleteImage?: (string) => void
   getAssetsPublicUrl?: (string) => string
   uploadImageFunction?: (
     base64Image: string,
     imageExtension?: string,
     pathname?: string
   ) => Promise<{ path: string; publicUrl: string }>
-  setScrollEnabled: React.Dispatch<React.SetStateAction<boolean>>
+  setScrollEnabled?: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 const MINIMUM_CROP_DIMENSIONS = {
@@ -68,6 +70,7 @@ export const ImageGridInputField: FC<FormEntryField & TextStyles> = ({
   setScrollEnabled,
   id,
   prefill,
+  deleteImage,
 }) => {
   const { cropImage } = useImageCropContext()
   const { width } = useWindowDimensions()
@@ -198,6 +201,34 @@ export const ImageGridInputField: FC<FormEntryField & TextStyles> = ({
     // setValues()
   }, [data, id, onSaveData])
 
+  const onDeleteImagePress = useCallback(
+    (picIndex: number) => {
+      Alert.alert('Delete this image?', undefined, [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'OK',
+          onPress: () => {
+            const value = values?.[picIndex]
+
+            if (value) {
+              setData((dataVal) =>
+                dataVal?.map((_, idx) =>
+                  idx === picIndex ? { ..._, pic: undefined, localUri: undefined } : _
+                )
+              )
+              setValues((val) => val?.map((_, idx) => (idx === picIndex ? null : _)))
+              deleteImage(value)
+            }
+          },
+        },
+      ])
+    },
+    [deleteImage, values]
+  )
+
   const render_item = useCallback(
     ({
       pic,
@@ -260,24 +291,24 @@ export const ImageGridInputField: FC<FormEntryField & TextStyles> = ({
             source={{ uri: getAssetsPublicUrl(pic) }}
             style={{ width: ITEM_WIDTH, height: ITEM_HEIGHT, borderRadius: 22 }}
           />
-          {/* <Pressable
-          onPress={() => {}}
-          style={{
-            position: 'absolute',
-            bottom: 10,
-            right: 10,
-            padding: 0,
-            borderRadius: 22,
-            zIndex: 100,
-            backgroundColor: Colors.$iconDanger,
-          }}
-        >
-          <IconsCrossSmall width={24} height={24} fill={Colors.white} />
-        </Pressable> */}
+          <Pressable
+            onPress={() => onDeleteImagePress(index)}
+            style={{
+              position: 'absolute',
+              bottom: 6,
+              right: 6,
+              padding: 0,
+              borderRadius: 22,
+              zIndex: 100,
+              backgroundColor: Colors.$iconDanger,
+            }}
+          >
+            <IconsCrossSmall width={24} height={24} fill={Colors.white} />
+          </Pressable>
         </View>
       )
     },
-    [getAssetsPublicUrl, onPress, values, width]
+    [getAssetsPublicUrl, onDeleteImagePress, onPress, values, width]
   )
 
   return (
