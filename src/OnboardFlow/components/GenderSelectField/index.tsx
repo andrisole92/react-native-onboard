@@ -42,25 +42,47 @@ export interface FormEntryField {
   ) => Promise<{ path: string; publicUrl: string }>
 }
 
-export const GenderSelectField: FC<FormEntryField & TextStyles> = ({ isRequired, setHasError }) => {
-  const [value, setValue] = useState()
+const FONT_SIZE = 16
+
+export const GenderSelectField: FC<FormEntryField & TextStyles> = ({
+  isRequired,
+  setHasError,
+  setCanContinue,
+  onSaveData,
+  id,
+  prefill,
+}) => {
+  const [value, setValue] = useState<string>(prefill ?? undefined)
+
+  const selectGender = useCallback(
+    (gender: string) => {
+      setValue(gender)
+      onSaveData({ value: gender, id })
+    },
+    [id, onSaveData]
+  )
+
+  useEffect(() => {
+    setHasError(value == null)
+  }, [setHasError, value])
 
   return (
     <View flex style={{ marginVertical: 12, flexDirection: 'column' }}>
-      {/* {withLabel && <SuperInputLabel label={label} />} */}
-      <View>
+      <View style={{ display: 'flex', flexDirection: 'row' }}>
         <Pressable
+          onPress={() => selectGender('Male')}
           testID="signUpGenderOptionMale"
           style={[
             styles.genderSelectOption,
             { marginRight: 4 },
-            value === 'Male' ? { backgroundColor: '#F7ECFF' } : {},
+            value === 'Male' ? { backgroundColor: 'black' } : {},
           ]}
         >
           <Text
             style={{
-              marginLeft: 8,
-              color: value === 'Male' ? Colors.fontPrimary : Colors.fontPrimary,
+              fontWeight: 'bold',
+              fontSize: FONT_SIZE,
+              color: value === 'Male' ? Colors.white : Colors.fontPrimary,
             }}
           >
             Male
@@ -68,16 +90,18 @@ export const GenderSelectField: FC<FormEntryField & TextStyles> = ({ isRequired,
         </Pressable>
         <Pressable
           testID="signUpGenderOptionFemale"
+          onPress={() => selectGender('Female')}
           style={[
             styles.genderSelectOption,
             { marginLeft: 4 },
-            value === 'Female' ? { backgroundColor: '#F7ECFF' } : {},
+            value === 'Female' ? { backgroundColor: 'black' } : {},
           ]}
         >
           <Text
             style={{
-              marginLeft: 8,
-              color: value === 'Female' ? Colors.fontPrimary : Colors.fontPrimary,
+              fontWeight: 'bold',
+              fontSize: FONT_SIZE,
+              color: value === 'Female' ? Colors.white : Colors.fontPrimary,
             }}
           >
             Female

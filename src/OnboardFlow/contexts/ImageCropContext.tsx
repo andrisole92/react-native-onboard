@@ -10,11 +10,14 @@ const MINIMUM_CROP_DIMENSIONS = {
   height: 50,
 }
 
+type Options = { fixedCropAspectRatio?: number }
+
 type ContextType = {
   cropImage: (
     asset: ImagePicker.ImagePickerAsset,
-    options?: { fixedCropAspectRatio?: number }
+    options?: Options
   ) => Promise<ImagePicker.ImagePickerAsset>
+  pickImage: (options?: Options) => Promise<ImagePicker.ImagePickerAsset>
 }
 
 const ImageCropContext = createContext<ContextType>(null)
@@ -50,7 +53,7 @@ export function ImageCropContextProvider({ children }: Props): React.ReactElemen
   const cropImage = useCallback(
     async (
       asset: ImagePicker.ImagePickerAsset,
-      options?: { fixedCropAspectRatio?: number }
+      options?: Options
     ): Promise<ImagePicker.ImagePickerAsset> => {
       setMImage(asset)
       setAspectRation(options?.fixedCropAspectRatio ?? DEFAULT_ASPECT_RATIO)
@@ -62,8 +65,20 @@ export function ImageCropContextProvider({ children }: Props): React.ReactElemen
     []
   )
 
+  const pickImage = useCallback(
+    async (options?: Options): Promise<ImagePicker.ImagePickerAsset> => {
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 1,
+        base64: true,
+      })
+      return cropImage(result?.assets?.[0], options)
+    },
+    [cropImage]
+  )
+
   return (
-    <ImageCropContext.Provider value={{ cropImage }}>
+    <ImageCropContext.Provider value={{ cropImage, pickImage }}>
       <ImageEditor
         mode="crop-only"
         visible={mImage != null}

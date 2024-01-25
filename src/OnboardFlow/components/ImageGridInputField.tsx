@@ -72,17 +72,15 @@ export const ImageGridInputField: FC<FormEntryField & TextStyles> = ({
   prefill,
   deleteImage,
 }) => {
-  const { cropImage } = useImageCropContext()
+  const { cropImage, pickImage } = useImageCropContext()
   const { width } = useWindowDimensions()
-
-  const [values, setValues] = useState((prefill as any[]) ?? [null, null, null, null, null, null])
 
   const [data, setData] = useState([
     {
       index: 0,
       key: 'one',
       name: 'one',
-      pic: values?.[0],
+      pic: prefill?.[0],
       isLoading: false,
       localUri: undefined,
     },
@@ -90,7 +88,7 @@ export const ImageGridInputField: FC<FormEntryField & TextStyles> = ({
       index: 1,
       key: 'two',
       name: 'two',
-      pic: values?.[1],
+      pic: prefill?.[1],
       isLoading: false,
       localUri: undefined,
     },
@@ -98,7 +96,7 @@ export const ImageGridInputField: FC<FormEntryField & TextStyles> = ({
       index: 2,
       key: 'three',
       name: 'three',
-      pic: values?.[2],
+      pic: prefill?.[2],
       isLoading: false,
       localUri: undefined,
     },
@@ -106,7 +104,7 @@ export const ImageGridInputField: FC<FormEntryField & TextStyles> = ({
       index: 3,
       key: 'four',
       name: 'four',
-      pic: values?.[3],
+      pic: prefill?.[3],
       isLoading: false,
       localUri: undefined,
     },
@@ -114,7 +112,7 @@ export const ImageGridInputField: FC<FormEntryField & TextStyles> = ({
       index: 4,
       key: 'five',
       name: 'five',
-      pic: values?.[4],
+      pic: prefill?.[4],
       isLoading: false,
       localUri: undefined,
     },
@@ -122,7 +120,7 @@ export const ImageGridInputField: FC<FormEntryField & TextStyles> = ({
       index: 5,
       key: 'six',
       name: 'six',
-      pic: values?.[5],
+      pic: prefill?.[5],
       isLoading: false,
       localUri: undefined,
     },
@@ -137,13 +135,7 @@ export const ImageGridInputField: FC<FormEntryField & TextStyles> = ({
   const onPress = useCallback(
     async (pic_index: number) => {
       try {
-        let result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          quality: 1,
-          base64: true,
-        })
-
-        const croppedImage = await cropImage(result?.assets?.[0])
+        const croppedImage = await pickImage()
 
         const localUri = croppedImage.uri
 
@@ -175,30 +167,25 @@ export const ImageGridInputField: FC<FormEntryField & TextStyles> = ({
         setData((localData) =>
           localData?.map((localItem) =>
             localItem?.index === pic_index
-              ? { ...localItem, isLoading: false, localUri, disabledDrag: false }
+              ? {
+                  ...localItem,
+                  isLoading: false,
+                  localUri: undefined,
+                  disabledDrag: false,
+                  pic: res?.path,
+                }
               : localItem
           )
-        )
-        setValues((localValues) =>
-          localValues?.map((val, index) => (index === pic_index ? res?.path : val))
         )
       } catch (e) {
         // logException(e)
       }
     },
-    [cropImage, uploadImageFunction]
+    [pickImage, uploadImageFunction]
   )
 
   useEffect(() => {
-    onSaveData?.({ id, value: values })
-  }, [values, id, onSaveData])
-
-  useEffect(() => {
-    const newValues = data?.map((dataItem) => dataItem?.pic)
-    console.log({ newValues })
-    onSaveData?.({ id, value: newValues })
-
-    // setValues()
+    onSaveData?.({ id, value: data?.map((item) => item?.pic) })
   }, [data, id, onSaveData])
 
   const onDeleteImagePress = useCallback(
@@ -211,7 +198,7 @@ export const ImageGridInputField: FC<FormEntryField & TextStyles> = ({
         {
           text: 'OK',
           onPress: () => {
-            const value = values?.[picIndex]
+            const value = data?.[picIndex]?.pic
 
             if (value) {
               setData((dataVal) =>
@@ -219,14 +206,13 @@ export const ImageGridInputField: FC<FormEntryField & TextStyles> = ({
                   idx === picIndex ? { ..._, pic: undefined, localUri: undefined } : _
                 )
               )
-              setValues((val) => val?.map((_, idx) => (idx === picIndex ? null : _)))
               deleteImage(value)
             }
           },
         },
       ])
     },
-    [deleteImage, values]
+    [data, deleteImage]
   )
 
   const render_item = useCallback(
@@ -245,70 +231,70 @@ export const ImageGridInputField: FC<FormEntryField & TextStyles> = ({
     }) => {
       const ITEM_WIDTH = width / 3 - 17
       const ITEM_HEIGHT = (ITEM_WIDTH / 3) * 4
-      const value = values?.[index]
 
-      return value == null ? (
-        localUri ? (
-          <View
-            style={{
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
-          >
+      if (pic)
+        return (
+          <View>
             <Image
-              source={{ uri: localUri }}
+              source={{ uri: getAssetsPublicUrl(pic) }}
               style={{ width: ITEM_WIDTH, height: ITEM_HEIGHT, borderRadius: 22 }}
             />
-            {isLoading && (
-              <ActivityIndicator
-                size={48}
-                animating={true}
-                color={Colors.main}
-                style={{ position: 'absolute' }}
-              />
-            )}
+            <Pressable
+              onPress={() => onDeleteImagePress(index)}
+              style={{
+                position: 'absolute',
+                bottom: 6,
+                right: 6,
+                padding: 0,
+                borderRadius: 22,
+                zIndex: 100,
+                backgroundColor: Colors.$iconDanger,
+              }}
+            >
+              <IconsCrossSmall width={24} height={24} fill={Colors.white} />
+            </Pressable>
           </View>
-        ) : (
-          <Pressable
-            testID="imageUploadButton"
-            onPress={() => onPress(index)}
-            style={[
-              styles.touchable,
-              {
-                backgroundColor: '#f5f5f5',
-                borderColor: Colors.main,
-                width: ITEM_WIDTH,
-                height: ITEM_HEIGHT,
-              },
-            ]}
-          >
-            <IconCameraF width={32} height={32} fill={Colors.main} />
-          </Pressable>
         )
-      ) : (
-        <View>
+
+      return localUri ? (
+        <View
+          style={{
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
           <Image
-            source={{ uri: getAssetsPublicUrl(pic) }}
+            source={{ uri: localUri }}
             style={{ width: ITEM_WIDTH, height: ITEM_HEIGHT, borderRadius: 22 }}
           />
-          <Pressable
-            onPress={() => onDeleteImagePress(index)}
-            style={{
-              position: 'absolute',
-              bottom: 6,
-              right: 6,
-              padding: 0,
-              borderRadius: 22,
-              zIndex: 100,
-              backgroundColor: Colors.$iconDanger,
-            }}
-          >
-            <IconsCrossSmall width={24} height={24} fill={Colors.white} />
-          </Pressable>
+          {isLoading && (
+            <ActivityIndicator
+              size={48}
+              animating={true}
+              color={Colors.main}
+              style={{ position: 'absolute' }}
+            />
+          )}
         </View>
+      ) : (
+        <Pressable
+          testID="imageUploadButton"
+          onPress={() => onPress(index)}
+          style={[
+            styles.touchable,
+            {
+              backgroundColor: '#f5f5f5',
+              borderColor: Colors.main,
+              width: ITEM_WIDTH,
+              height: ITEM_HEIGHT,
+            },
+          ]}
+        >
+          <IconCameraF width={32} height={32} fill={Colors.main} />
+        </Pressable>
       )
     },
-    [getAssetsPublicUrl, onDeleteImagePress, onPress, values, width]
+    [data, getAssetsPublicUrl, onDeleteImagePress, onPress, width]
   )
 
   return (
@@ -319,9 +305,10 @@ export const ImageGridInputField: FC<FormEntryField & TextStyles> = ({
         numColumns={3}
         renderItem={render_item}
         data={data}
-        onDragRelease={async (data) => {
+        onDragRelease={async (newData) => {
           setScrollEnabled(true)
-          setData(data)
+          // console.log({ newData })
+          setData(newData)
         }}
       />
     </View>

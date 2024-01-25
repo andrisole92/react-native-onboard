@@ -5,7 +5,6 @@ import { PhoneNumberEntryPage } from './pages/PhoneNumberEntryPage'
 import { PhoneNumberVerificationPage } from './pages/PhoneNumberVerificationPage'
 
 export const DEFAULT_PAGE_TYPES = {
-  // enableLocation: enableLocationPage,
   phoneNumberEntry: PhoneNumberEntryPage,
   phoneNumberVerification: PhoneNumberVerificationPage,
   formEntry: FormEntryPage,

@@ -144,25 +144,27 @@ export const InputField: FC<FormEntryField & TextStyles> = ({
 
   return (
     <View style={{ marginTop: -6 }}>
-      {/* <Text
-        style={[
-          {
-            color: secondaryColor,
-            fontSize: 12,
-            backgroundColor: backgroundColor ?? '#FFFFFF',
-            alignSelf: 'flex-start',
-            position: 'relative',
-            paddingHorizontal: 4,
-            bottom: -22,
-            left: 12,
-            zIndex: 5,
-            opacity: isFocused ? 1 : 0.0,
-          },
-          textStyle,
-        ]}
-      >
-        {label}
-      </Text> */}
+      {label && (
+        <Text
+          style={[
+            {
+              color: secondaryColor,
+              fontSize: 12,
+              backgroundColor: backgroundColor ?? '#FFFFFF',
+              alignSelf: 'flex-start',
+              position: 'relative',
+              paddingHorizontal: 4,
+              bottom: -22,
+              left: 12,
+              zIndex: 5,
+              opacity: isFocused ? 1 : 0.0,
+            },
+            textStyle,
+          ]}
+        >
+          {label}
+        </Text>
+      )}
       <TextInput
         ref={inputRef}
         autoCapitalize={autoCapitalize}
@@ -177,7 +179,6 @@ export const InputField: FC<FormEntryField & TextStyles> = ({
         value={text}
         textContentType={getTextContentType(type)}
         dataDetectorTypes={getDataDetectorType(type)}
-        maxLength={255}
         placeholder={placeHolder}
         style={[
           styles.option,

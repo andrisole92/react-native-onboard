@@ -84,7 +84,7 @@ export const AvatarInputField: FC<FormEntryField & TextStyles> = ({
 
       const manipResult = await manipulateAsync(
         localUri,
-        [{ resize: { height: 600, width: 600 } }],
+        [{ resize: { height: 200, width: 200 } }],
         {
           compress: 0.8,
           format: SaveFormat.JPEG,
@@ -99,7 +99,7 @@ export const AvatarInputField: FC<FormEntryField & TextStyles> = ({
       setLoading(true)
       const res = await uploadImageFunction(
         base64Img,
-        manipResult.uri?.substr(localUri.lastIndexOf('.') + 1),
+        manipResult.uri?.substr(manipResult.uri.lastIndexOf('.') + 1),
         '/avatars/'
       )
       setValue(res?.path)
