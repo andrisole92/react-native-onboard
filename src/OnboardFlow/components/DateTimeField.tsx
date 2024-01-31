@@ -1,4 +1,5 @@
 import RNDateTimePicker from '@react-native-community/datetimepicker'
+import { subDays } from 'date-fns'
 import React, { FC, useCallback, useEffect, useRef, useState } from 'react'
 import { ColorValue, Keyboard, StyleSheet, Text, TextInput, View } from 'react-native'
 import DatePicker from 'react-native-date-picker'
@@ -24,6 +25,7 @@ export interface FormEntryField {
   secondaryColor?: string
   canContinue?: boolean
   setCanContinue?: (value: boolean) => void
+  hasError?: boolean
   setHasError?: (value: boolean) => void
   autoFocus?: boolean
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters' | undefined
@@ -49,6 +51,7 @@ export const DateTimeField: FC<FormEntryField & TextStyles> = ({
   prefill,
   backgroundColor,
   canContinue,
+  hasError,
   setHasError,
   setCanContinue,
   isRequired,
@@ -58,12 +61,18 @@ export const DateTimeField: FC<FormEntryField & TextStyles> = ({
   currentPage,
   pageIndex,
 }) => {
-  const inputRef = useRef(null)
   const [errorMessage, setErrorMessage] = useState('')
   const [isFocused, setIsFocused] = useState(false)
-  const [text, setText] = useState(prefill ?? '')
 
-  const [date, setDate] = useState(new Date(prefill ?? new Date()))
+  const [date, setDate] = useState(
+    prefill ? new Date(prefill ?? subDays(new Date(), 365)) : undefined
+  )
+
+  useEffect(() => {
+    if (isRequired) {
+      setHasError(date == null)
+    }
+  }, [date, isRequired, setHasError])
 
   const [open, setOpen] = useState(false)
 
@@ -94,16 +103,17 @@ export const DateTimeField: FC<FormEntryField & TextStyles> = ({
         modal
         mode={'date'}
         open={open}
-        date={date}
-        maximumDate={new Date()}
+        date={date ?? subDays(new Date(), 365)}
+        maximumDate={subDays(new Date(), 2)}
         timeZoneOffsetInMinutes={new Date().getTimezoneOffset()}
         onConfirm={onConfirm}
         onCancel={onCancel}
       />
       <TextInput
+        onPressOut={openPicker}
         onPressIn={openPicker}
         onFocus={openPicker}
-        value={date?.toISOString()?.split('T')?.[0]}
+        value={date?.toISOString()?.split('T')?.[0] ?? undefined}
         placeholder={placeHolder}
         style={[
           styles.option,

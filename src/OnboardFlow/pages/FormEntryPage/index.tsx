@@ -126,7 +126,8 @@ const FieldWrapper = ({
           canContinue: canContinue,
           setCanContinue: setCanContinue,
           backgroundColor: style ? StyleSheet.flatten(style)?.backgroundColor : '#FFFFFF',
-          setHasError: setHasError,
+          hasError,
+          setHasError,
           autoFocus: autoFocus,
           autoCapitalize: input?.autoCapitalize,
           currentPage: currentPage,
@@ -160,6 +161,7 @@ const FieldWrapper = ({
           textStyle={textStyle}
           canContinue={canContinue}
           setCanContinue={setCanContinue}
+          hasError={hasError}
           setHasError={setHasError}
           backgroundColor={style ? StyleSheet.flatten(style)?.backgroundColor : '#FFFFFF'}
           autoFocus={autoFocus}

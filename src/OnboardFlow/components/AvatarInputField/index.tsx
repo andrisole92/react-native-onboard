@@ -1,8 +1,8 @@
 import * as FileSystem from 'expo-file-system'
 import * as ImagePicker from 'expo-image-picker'
-import React, { FC, useCallback, useEffect, useRef, useState } from 'react'
+import React, { FC, useCallback, useEffect, useState } from 'react'
 
-import { ActivityIndicator, ColorValue, StyleSheet } from 'react-native'
+import { ActivityIndicator, ColorValue } from 'react-native'
 
 import { SaveFormat, manipulateAsync } from 'expo-image-manipulator'
 import { Avatar, Button, Colors, Text, View } from 'react-native-ui-lib'
@@ -26,6 +26,7 @@ export interface FormEntryField {
   secondaryColor?: string
   canContinue?: boolean
   setCanContinue?: (value: boolean) => void
+  hasError?: boolean
   setHasError?: (value: boolean) => void
   autoFocus?: boolean
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters' | undefined
@@ -106,7 +107,6 @@ export const AvatarInputField: FC<FormEntryField & TextStyles> = ({
       setLoading(false)
       setHasError(false)
     } catch (err) {
-      console.error(err)
       setError(true)
     }
   }, [cropImage, uploadImageFunction, setHasError])
@@ -117,11 +117,6 @@ export const AvatarInputField: FC<FormEntryField & TextStyles> = ({
 
   return (
     <View flex center>
-      {error && (
-        <Text color={Colors.red30} marginT-20>
-          Sorry, something went wrong
-        </Text>
-      )}
       <View
         marginT-20
         center
@@ -161,22 +156,11 @@ export const AvatarInputField: FC<FormEntryField & TextStyles> = ({
         labelStyle={{ fontWeight: 'bold' }}
         onPress={pickImage}
       />
+      {error && (
+        <Text color={Colors.red30} marginT-20>
+          Sorry, something went wrong
+        </Text>
+      )}
     </View>
   )
 }
-
-const styles = StyleSheet.create({
-  option: {
-    width: '100%',
-    height: 60,
-    borderWidth: 1,
-    borderColor: '#E6E6E6',
-    borderRadius: 12,
-    fontSize: 18,
-  },
-  errorText: {
-    fontSize: 14,
-    color: '#a60202',
-    paddingTop: 8,
-  },
-})

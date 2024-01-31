@@ -16,7 +16,7 @@ import {
 import { DraggableGrid } from 'react-native-draggable-grid'
 
 import { SaveFormat, manipulateAsync } from 'expo-image-manipulator'
-import { Colors, View } from 'react-native-ui-lib'
+import { Colors, Text, View } from 'react-native-ui-lib'
 import { useImageCropContext } from '../contexts/ImageCropContext'
 import { TextStyles } from '../types'
 
@@ -37,6 +37,7 @@ export interface FormEntryField {
   secondaryColor?: string
   canContinue?: boolean
   setCanContinue?: (value: boolean) => void
+  hasError?: boolean
   setHasError?: (value: boolean) => void
   autoFocus?: boolean
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters' | undefined
@@ -64,6 +65,7 @@ export const ImageGridInputField: FC<FormEntryField & TextStyles> = ({
   uploadImageFunction,
   getAssetsPublicUrl,
   isRequired,
+  hasError,
   setHasError,
   setCanContinue,
   onSaveData,
@@ -126,10 +128,11 @@ export const ImageGridInputField: FC<FormEntryField & TextStyles> = ({
     },
   ])
 
-  const totalImages = useMemo(() => data?.filter?.((im) => im?.localUri != null)?.length, [data])
+  const totalImages = useMemo(() => data?.filter?.((im) => im?.pic != null)?.length, [data])
 
   useEffect(() => {
-    // setHasError(totalImages < 1)
+    console.log({ totalImages, error: totalImages < 2 })
+    isRequired && setHasError(totalImages < 2)
   }, [isRequired, setHasError, totalImages])
 
   const onPress = useCallback(
@@ -294,7 +297,7 @@ export const ImageGridInputField: FC<FormEntryField & TextStyles> = ({
         </Pressable>
       )
     },
-    [data, getAssetsPublicUrl, onDeleteImagePress, onPress, width]
+    [getAssetsPublicUrl, onDeleteImagePress, onPress, width]
   )
 
   return (
@@ -311,6 +314,11 @@ export const ImageGridInputField: FC<FormEntryField & TextStyles> = ({
           setData(newData)
         }}
       />
+      {hasError && (
+        <Text color={Colors.red30} marginT-20>
+          please upload at least two photos
+        </Text>
+      )}
     </View>
   )
 }

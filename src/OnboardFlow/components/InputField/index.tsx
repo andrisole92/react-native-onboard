@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useRef, useState } from 'react'
+import React, { FC, useCallback, useEffect, useRef, useState } from 'react'
 import { ColorValue, StyleSheet, Text, TextInput, View } from 'react-native'
 import { HORIZONTAL_PADDING_DEFAULT, VERTICAL_PADDING_DEFAULT } from '../../constants'
 import { TextStyles } from '../../types'
@@ -69,7 +69,7 @@ export const InputField: FC<FormEntryField & TextStyles> = ({
     if (currentPage === pageIndex && autoFocus) inputRef?.current?.focus()
   }, [currentPage, pageIndex, autoFocus, placeHolder])
 
-  function getKeyboardType(inputType: string) {
+  const getKeyboardType = (inputType: string) => {
     if (inputType == 'email') {
       return 'email-address'
     }
@@ -79,7 +79,7 @@ export const InputField: FC<FormEntryField & TextStyles> = ({
     return 'default'
   }
 
-  function getTextContentType(inputType: string) {
+  const getTextContentType = (inputType: string) => {
     if (inputType == 'email') {
       return 'emailAddress'
     }
@@ -95,52 +95,58 @@ export const InputField: FC<FormEntryField & TextStyles> = ({
     return undefined
   }
 
-  function validateTextBasedOnInput(string: string, includeError: boolean) {
-    if (type == 'password') {
-      // Validate password meets minimum requirements otherwise setError
-      const re = new RegExp('^(?=.*d)(?=.*[a-z])(?=.*[A-Z]).{8,32}$')
-      const isOk = re.test(string)
-      handleErrorState(
-        includeError,
-        isOk,
-        'Your password must be at least 8 characters and include a number and a special character'
-      )
-    } else if (type == 'email') {
-      const re = new RegExp(/(.+)@(.+){2,}\.(.+){2,}/)
-      const isOk = re.test(string)
-      handleErrorState(includeError, isOk, 'Invalid e-mail address')
-    } else if (type == 'text' || type === 'number') {
-      const isOk = string.trim().length > 0
-      handleErrorState(includeError, isOk, FAIL_SILENTLY)
-    } else if (type == 'handle') {
-      // Validate that only allowed characters are used similar to instagram handles
-      const re = new RegExp(/^[a-zA-Z0-9_.]+$/)
-      const isOk = re.test(string) && string.length >= 2
-      handleErrorState(includeError, isOk, 'Invalid handle')
-    }
-  }
-
-  function handleErrorState(includeError: boolean, isOk: boolean, errorString: string) {
-    if (!isOk) {
-      setHasError(true)
-    } else {
-      setErrorMessage('')
-      setHasError(false)
-    }
-    if (includeError) {
+  const handleErrorState = useCallback(
+    (includeError: boolean, isOk: boolean, errorString: string) => {
       if (!isOk) {
-        setErrorMessage(errorString)
+        setHasError(true)
       } else {
         setErrorMessage('')
+        setHasError(false)
       }
-    }
-  }
+      if (includeError) {
+        if (!isOk) {
+          setErrorMessage(errorString)
+        } else {
+          setErrorMessage('')
+        }
+      }
+    },
+    [setHasError]
+  )
+
+  const validateTextBasedOnInput = useCallback(
+    (string: string, includeError: boolean) => {
+      if (type == 'password') {
+        // Validate password meets minimum requirements otherwise setError
+        const re = new RegExp('^(?=.*d)(?=.*[a-z])(?=.*[A-Z]).{8,32}$')
+        const isOk = re.test(string)
+        handleErrorState(
+          includeError,
+          isOk,
+          'Your password must be at least 8 characters and include a number and a special character'
+        )
+      } else if (type == 'email') {
+        const re = new RegExp(/(.+)@(.+){2,}\.(.+){2,}/)
+        const isOk = re.test(string)
+        handleErrorState(includeError, isOk, 'Invalid e-mail address')
+      } else if (type == 'text' || type === 'number') {
+        const isOk = string.trim().length > 0
+        handleErrorState(includeError, isOk, FAIL_SILENTLY)
+      } else if (type == 'handle') {
+        // Validate that only allowed characters are used similar to instagram handles
+        const re = new RegExp(/^[a-zA-Z0-9_.]+$/)
+        const isOk = re.test(string) && string.length >= 2
+        handleErrorState(includeError, isOk, 'Invalid handle')
+      }
+    },
+    [handleErrorState, type]
+  )
 
   useEffect(() => {
     if (isRequired) {
       validateTextBasedOnInput(text, false)
     }
-  }, [])
+  }, [isRequired, text, validateTextBasedOnInput])
 
   return (
     <View style={{ marginTop: -6 }}>
