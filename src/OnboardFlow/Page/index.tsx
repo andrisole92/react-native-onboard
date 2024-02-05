@@ -59,6 +59,7 @@ export const Page: FC<PageProps & TextStyles> = ({
   primaryColor,
   secondaryColor,
   setScrollEnabled,
+  setCanContinue,
 }) => {
   const [imageHeight, setImageHeight] = useState(0)
   const [containerHeight, setContainerHeight] = useState<number>(
@@ -72,6 +73,10 @@ export const Page: FC<PageProps & TextStyles> = ({
   const onTextStackLayout = (event) => {
     setMaxTextHeight && setMaxTextHeight(event.nativeEvent.layout.height)
   }
+
+  useEffect(() => {
+    setCanContinue(true)
+  }, [setCanContinue])
 
   useEffect(() => {
     if (pageData.imageUri) {
@@ -92,8 +97,13 @@ export const Page: FC<PageProps & TextStyles> = ({
     <View style={[styles.container, style, { width: width }]} onLayout={onContainerLayout}>
       {pageData.imageUri && (
         <Image
-          source={{ uri: pageData.imageUri }}
-          style={{ width: 'auto', height: '50%', marginVertical: VERTICAL_PADDING_DEFAULT * 3 }}
+          source={pageData?.imageSource ?? { uri: pageData.imageUri }}
+          style={{
+            width: 'auto',
+            height: '50%',
+            marginVertical: VERTICAL_PADDING_DEFAULT * 3,
+            maxHeight: '50%',
+          }}
           resizeMode="contain"
         />
       )}

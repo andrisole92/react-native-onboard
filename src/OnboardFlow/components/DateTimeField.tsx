@@ -106,6 +106,7 @@ export const DateTimeField: FC<FormEntryField & TextStyles> = ({
         date={date ?? subDays(new Date(), 365)}
         maximumDate={subDays(new Date(), 2)}
         timeZoneOffsetInMinutes={new Date().getTimezoneOffset()}
+        onDateChange={setDate}
         onConfirm={onConfirm}
         onCancel={onCancel}
       />

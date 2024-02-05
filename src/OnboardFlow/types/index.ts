@@ -1,5 +1,5 @@
 import { FC, ReactElement } from 'react'
-import { StyleProp, TextStyle, ViewStyle } from 'react-native'
+import { ImageSourcePropType, StyleProp, TextStyle, ViewStyle } from 'react-native'
 import { FooterProps } from '../Footer'
 import { PrimaryButtonProps } from '../components/PrimaryButton'
 import { SecondaryButtonProps } from '../components/SecondaryButton'
@@ -12,6 +12,7 @@ import { FormElementTypesConfig, OnboardPageTypesConfig, PageType } from '../ind
 export interface FlowItemData {
   id?: string
   imageUri?: string
+  imageSource?: ImageSourcePropType
   subtitle?: string
   title?: string
   subtitleStyle?: StyleProp<TextStyle> | undefined

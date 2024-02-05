@@ -1,7 +1,7 @@
 import * as FileSystem from 'expo-file-system'
-import { Image } from 'expo-image'
 import * as ImagePicker from 'expo-image-picker'
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react'
+import Image from 'react-native-fast-image'
 import IconCameraF from '../../../static/assets/svg/camera-f.svg'
 import IconsCrossSmall from '../../../static/assets/svg/cross-small.svg'
 
