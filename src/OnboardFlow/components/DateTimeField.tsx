@@ -1,5 +1,5 @@
 import RNDateTimePicker from '@react-native-community/datetimepicker'
-import { subDays } from 'date-fns'
+import { format, subDays } from 'date-fns'
 import React, { FC, useCallback, useEffect, useRef, useState } from 'react'
 import { ColorValue, Keyboard, StyleSheet, Text, TextInput, View } from 'react-native'
 import DatePicker from 'react-native-date-picker'
@@ -114,7 +114,7 @@ export const DateTimeField: FC<FormEntryField & TextStyles> = ({
         onPressOut={openPicker}
         onPressIn={openPicker}
         onFocus={openPicker}
-        value={date?.toISOString()?.split('T')?.[0] ?? undefined}
+        value={date ? format(date, 'MMM dd, yyyy') : undefined}
         placeholder={placeHolder}
         style={[
           styles.option,
@@ -127,17 +127,6 @@ export const DateTimeField: FC<FormEntryField & TextStyles> = ({
           textStyle,
         ]}
       />
-      {/* <TextField {...rest} onFocus={setOpen.bind(this, true)} /> */}
-      {/* <DatePickerInput
-        locale="en"
-        label={label}
-        placeholder={placeHolder}
-        value={prefill ? new Date(prefill) : new Date()}
-        onChange={(date) => {
-          onSaveData({ value: date?.toISOString()?.split('T')[0], id })
-        }}
-        inputMode="start"
-      /> */}
 
       {errorMessage && errorMessage != FAIL_SILENTLY ? (
         <Text style={[textStyle, styles.errorText]}>{errorMessage}</Text>

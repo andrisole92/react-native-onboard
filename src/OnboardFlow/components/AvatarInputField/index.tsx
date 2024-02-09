@@ -75,7 +75,7 @@ export const AvatarInputField: FC<FormEntryField & TextStyles> = ({
     try {
       let result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        quality: 1,
+        quality: 0.8,
         base64: true,
       })
 
@@ -87,7 +87,7 @@ export const AvatarInputField: FC<FormEntryField & TextStyles> = ({
         localUri,
         [{ resize: { height: 200, width: 200 } }],
         {
-          compress: 0.8,
+          compress: 0.6,
           format: SaveFormat.JPEG,
         }
       )

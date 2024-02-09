@@ -146,7 +146,7 @@ export const ImageGridInputField: FC<FormEntryField & TextStyles> = ({
           localUri,
           [{ resize: { height: 1200, width: 900 } }],
           {
-            compress: 0.8,
+            compress: 0.6,
             format: SaveFormat.JPEG,
           }
         )

@@ -69,7 +69,7 @@ export function ImageCropContextProvider({ children }: Props): React.ReactElemen
     async (options?: Options): Promise<ImagePicker.ImagePickerAsset> => {
       let result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        quality: 1,
+        quality: 0.8,
         base64: true,
       })
       return cropImage(result?.assets?.[0], options)
