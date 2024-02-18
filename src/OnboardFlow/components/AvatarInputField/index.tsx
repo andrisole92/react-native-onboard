@@ -1,14 +1,19 @@
-import * as FileSystem from 'expo-file-system'
-import * as ImagePicker from 'expo-image-picker'
-import React, { FC, useCallback, useEffect, useState } from 'react'
+import * as FileSystem from "expo-file-system"
+import * as ImagePicker from "expo-image-picker"
+import React, { FC, useCallback, useEffect, useState } from "react"
 
-import { ActivityIndicator, ColorValue } from 'react-native'
+import { ActivityIndicator, ColorValue } from "react-native"
 
-import { SaveFormat, manipulateAsync } from 'expo-image-manipulator'
-import { Avatar, Button, Colors, Text, View } from 'react-native-ui-lib'
-import { useImageCropContext } from '../../contexts/ImageCropContext'
-import { TextStyles } from '../../types'
-
+import { Analytics } from "app/lib/Analytics"
+import { MyToast } from "app/lib/MyToast"
+import { SaveFormat, manipulateAsync } from "expo-image-manipulator"
+import FaceDetection, {
+  FaceDetectorContourMode,
+  FaceDetectorLandmarkMode,
+} from "react-native-face-detection"
+import { Avatar, Button, Colors, Text, View } from "react-native-ui-lib"
+import { useImageCropContext } from "../../contexts/ImageCropContext"
+import { TextStyles } from "../../types"
 export interface FormEntryField {
   label?: string
   placeHolder?: string
@@ -29,7 +34,7 @@ export interface FormEntryField {
   hasError?: boolean
   setHasError?: (value: boolean) => void
   autoFocus?: boolean
-  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters' | undefined
+  autoCapitalize?: "none" | "sentences" | "words" | "characters" | undefined
   backgroundColor?: ColorValue
   currentPage?: number
   pageIndex?: number
@@ -40,7 +45,7 @@ export interface FormEntryField {
   uploadImageFunction?: (
     base64Image: string,
     imageExtension?: string,
-    pathname?: string
+    pathname?: string,
   ) => Promise<{ path: string; publicUrl: string }>
 }
 
@@ -63,11 +68,11 @@ export const AvatarInputField: FC<FormEntryField & TextStyles> = ({
 
   const [loading, setLoading] = useState<boolean>(false)
 
-  const [selectedPhoto, setSelectedPhoto] = useState<ImagePicker.ImagePickerAsset>(null)
+  const [selectedPhoto, setSelectedPhoto] = useState<ImagePicker.ImagePickerAsset>()
   const [value, setValue] = useState<string | undefined>(prefill)
 
   useEffect(() => {
-    if (isRequired && value == null) setHasError(true)
+    if (isRequired && value == null) setHasError?.(true)
   }, [isRequired, setHasError, value])
 
   const pickImage = useCallback(async () => {
@@ -81,32 +86,44 @@ export const AvatarInputField: FC<FormEntryField & TextStyles> = ({
 
       const croppedImage = await cropImage(result?.assets?.[0], { fixedCropAspectRatio: 1 })
       setSelectedPhoto(croppedImage)
+
+      const faces = await FaceDetection.processImage(croppedImage?.uri, {
+        landmarkMode: FaceDetectorLandmarkMode.ALL,
+        contourMode: FaceDetectorContourMode.ALL,
+      })
+
+      if (faces?.length === 0) {
+        MyToast.show({ type: "error", text1: "Face not detected" })
+        throw new Error("We could not detect face in the image")
+      }
+
       const localUri = croppedImage.uri
 
       const manipResult = await manipulateAsync(
         localUri,
-        [{ resize: { height: 200, width: 200 } }],
+        [{ resize: { height: 400, width: 400 } }],
         {
-          compress: 0.6,
+          compress: 1,
           format: SaveFormat.JPEG,
-        }
+        },
       )
 
       const base64Img = await FileSystem.readAsStringAsync(manipResult.uri, {
         encoding: FileSystem?.EncodingType?.Base64,
       })
 
-      setValue(null)
+      setValue(undefined)
       setLoading(true)
-      const res = await uploadImageFunction(
+      const res = await uploadImageFunction?.(
         base64Img,
-        manipResult.uri?.substr(manipResult.uri.lastIndexOf('.') + 1),
-        '/avatars/'
+        manipResult.uri?.substr(manipResult.uri.lastIndexOf(".") + 1),
+        "/avatars/",
       )
       setValue(res?.path)
       setLoading(false)
-      setHasError(false)
+      setHasError?.(false)
     } catch (err) {
+      Analytics.logError(err)
       setError(true)
     }
   }, [cropImage, uploadImageFunction, setHasError])
@@ -127,7 +144,7 @@ export const AvatarInputField: FC<FormEntryField & TextStyles> = ({
         <Avatar
           size={248}
           source={{
-            uri: value ? getAssetsPublicUrl(value) : selectedPhoto?.uri,
+            uri: value != null ? getAssetsPublicUrl?.(value) : selectedPhoto?.uri,
           }}
           label="AR"
         />
@@ -135,25 +152,25 @@ export const AvatarInputField: FC<FormEntryField & TextStyles> = ({
         {loading && (
           <View
             style={{
-              position: 'absolute',
-              width: '100%',
-              height: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              position: "absolute",
+              width: "100%",
+              height: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
-            <ActivityIndicator size={'small'} />
+            <ActivityIndicator size={"small"} color={"white"} />
           </View>
         )}
       </View>
       <Button
         marginT-20
-        label={loading ? 'Uploading' : 'Upload'}
+        label={loading ? "Uploading" : "Upload"}
         disabled={loading}
         size={Button.sizes.large}
         backgroundColor={Colors.black}
-        labelStyle={{ fontWeight: 'bold' }}
+        labelStyle={{ fontWeight: "bold" }}
         onPress={pickImage}
       />
       {error && (

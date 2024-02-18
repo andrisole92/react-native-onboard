@@ -1,9 +1,9 @@
-import * as FileSystem from 'expo-file-system'
-import * as ImagePicker from 'expo-image-picker'
-import React, { FC, useCallback, useEffect, useMemo, useState } from 'react'
-import Image from 'react-native-fast-image'
-import IconCameraF from '../../../static/assets/svg/camera-f.svg'
-import IconsCrossSmall from '../../../static/assets/svg/cross-small.svg'
+import { MyToast } from "app/lib/MyToast"
+import * as FileSystem from "expo-file-system"
+import React, { FC, useCallback, useEffect, useMemo, useState } from "react"
+import Image from "react-native-fast-image"
+import IconCameraF from "../../../static/assets/svg/camera-f.svg"
+import IconsCrossSmall from "../../../static/assets/svg/cross-small.svg"
 
 import {
   ActivityIndicator,
@@ -12,13 +12,20 @@ import {
   Pressable,
   StyleSheet,
   useWindowDimensions,
-} from 'react-native'
-import { DraggableGrid } from 'react-native-draggable-grid'
+} from "react-native"
+import { DraggableGrid } from "react-native-draggable-grid"
+import FaceDetection, {
+  FaceDetectorContourMode,
+  FaceDetectorLandmarkMode,
+} from "react-native-face-detection"
 
-import { SaveFormat, manipulateAsync } from 'expo-image-manipulator'
-import { Colors, Text, View } from 'react-native-ui-lib'
-import { useImageCropContext } from '../contexts/ImageCropContext'
-import { TextStyles } from '../types'
+import { FullScreenSpinner } from "app/components/FullScreenSpinner"
+import { Analytics } from "app/lib/Analytics"
+import { SaveFormat, manipulateAsync } from "expo-image-manipulator"
+import { useSafeAreaInsets } from "react-native-safe-area-context"
+import { Colors, Text, View } from "react-native-ui-lib"
+import { useImageCropContext } from "../contexts/ImageCropContext"
+import { TextStyles } from "../types"
 
 export interface FormEntryField {
   label?: string
@@ -40,7 +47,7 @@ export interface FormEntryField {
   hasError?: boolean
   setHasError?: (value: boolean) => void
   autoFocus?: boolean
-  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters' | undefined
+  autoCapitalize?: "none" | "sentences" | "words" | "characters" | undefined
   backgroundColor?: ColorValue
   currentPage?: number
   pageIndex?: number
@@ -51,7 +58,7 @@ export interface FormEntryField {
   uploadImageFunction?: (
     base64Image: string,
     imageExtension?: string,
-    pathname?: string
+    pathname?: string,
   ) => Promise<{ path: string; publicUrl: string }>
   setScrollEnabled?: React.Dispatch<React.SetStateAction<boolean>>
 }
@@ -74,54 +81,61 @@ export const ImageGridInputField: FC<FormEntryField & TextStyles> = ({
   prefill,
   deleteImage,
 }) => {
+  const [fullScreenSpinnerConfig, setFullScreenSpinnerConfig] = useState<{
+    visible: boolean
+    textContent?: string
+  }>({
+    visible: false,
+    textContent: undefined,
+  })
   const { cropImage, pickImage } = useImageCropContext()
   const { width } = useWindowDimensions()
 
   const [data, setData] = useState([
     {
       index: 0,
-      key: 'one',
-      name: 'one',
+      key: "one",
+      name: "one",
       pic: prefill?.[0],
       isLoading: false,
       localUri: undefined,
     },
     {
       index: 1,
-      key: 'two',
-      name: 'two',
+      key: "two",
+      name: "two",
       pic: prefill?.[1],
       isLoading: false,
       localUri: undefined,
     },
     {
       index: 2,
-      key: 'three',
-      name: 'three',
+      key: "three",
+      name: "three",
       pic: prefill?.[2],
       isLoading: false,
       localUri: undefined,
     },
     {
       index: 3,
-      key: 'four',
-      name: 'four',
+      key: "four",
+      name: "four",
       pic: prefill?.[3],
       isLoading: false,
       localUri: undefined,
     },
     {
       index: 4,
-      key: 'five',
-      name: 'five',
+      key: "five",
+      name: "five",
       pic: prefill?.[4],
       isLoading: false,
       localUri: undefined,
     },
     {
       index: 5,
-      key: 'six',
-      name: 'six',
+      key: "six",
+      name: "six",
       pic: prefill?.[5],
       isLoading: false,
       localUri: undefined,
@@ -140,6 +154,20 @@ export const ImageGridInputField: FC<FormEntryField & TextStyles> = ({
       try {
         const croppedImage = await pickImage()
 
+        // setFullScreenSpinnerConfig((config) => ({ ...config, visible: true }))
+
+        const faces = await FaceDetection.processImage(croppedImage?.uri, {
+          landmarkMode: FaceDetectorLandmarkMode.ALL,
+          contourMode: FaceDetectorContourMode.ALL,
+        })
+
+        // setFullScreenSpinnerConfig((config) => ({ ...config, visible: false }))
+
+        if (faces?.length === 0) {
+          MyToast.show({ type: "error", text1: "No faces detected in the image" })
+          throw new Error("No faces detected in the image")
+        }
+
         const localUri = croppedImage.uri
 
         const manipResult = await manipulateAsync(
@@ -148,7 +176,7 @@ export const ImageGridInputField: FC<FormEntryField & TextStyles> = ({
           {
             compress: 0.6,
             format: SaveFormat.JPEG,
-          }
+          },
         )
 
         const base64Img = await FileSystem.readAsStringAsync(manipResult.uri, {
@@ -157,14 +185,16 @@ export const ImageGridInputField: FC<FormEntryField & TextStyles> = ({
 
         setData((localData) =>
           localData?.map((localItem) =>
-            localItem?.index === pic_index ? { ...localItem, isLoading: true, localUri } : localItem
-          )
+            localItem?.index === pic_index
+              ? { ...localItem, isLoading: true, localUri }
+              : localItem,
+          ),
         )
 
         const res = await uploadImageFunction(
           base64Img,
-          manipResult.uri?.substr(localUri.lastIndexOf('.') + 1),
-          '/images/'
+          manipResult.uri?.substr(localUri.lastIndexOf(".") + 1),
+          "/images/",
         )
 
         setData((localData) =>
@@ -177,14 +207,14 @@ export const ImageGridInputField: FC<FormEntryField & TextStyles> = ({
                   disabledDrag: false,
                   pic: res?.path,
                 }
-              : localItem
-          )
+              : localItem,
+          ),
         )
       } catch (e) {
-        // logException(e)
+        Analytics.logError(e)
       }
     },
-    [pickImage, uploadImageFunction]
+    [pickImage, uploadImageFunction],
   )
 
   useEffect(() => {
@@ -193,21 +223,21 @@ export const ImageGridInputField: FC<FormEntryField & TextStyles> = ({
 
   const onDeleteImagePress = useCallback(
     (picIndex: number) => {
-      Alert.alert('Delete this image?', undefined, [
+      Alert.alert("Delete this image?", undefined, [
         {
-          text: 'Cancel',
-          style: 'cancel',
+          text: "Cancel",
+          style: "cancel",
         },
         {
-          text: 'OK',
+          text: "OK",
           onPress: () => {
             const value = data?.[picIndex]?.pic
 
             if (value) {
               setData((dataVal) =>
                 dataVal?.map((_, idx) =>
-                  idx === picIndex ? { ..._, pic: undefined, localUri: undefined } : _
-                )
+                  idx === picIndex ? { ..._, pic: undefined, localUri: undefined } : _,
+                ),
               )
               deleteImage(value)
             }
@@ -215,7 +245,7 @@ export const ImageGridInputField: FC<FormEntryField & TextStyles> = ({
         },
       ])
     },
-    [data, deleteImage]
+    [data, deleteImage],
   )
 
   const render_item = useCallback(
@@ -245,7 +275,7 @@ export const ImageGridInputField: FC<FormEntryField & TextStyles> = ({
             <Pressable
               onPress={() => onDeleteImagePress(index)}
               style={{
-                position: 'absolute',
+                position: "absolute",
                 bottom: 6,
                 right: 6,
                 padding: 0,
@@ -262,8 +292,8 @@ export const ImageGridInputField: FC<FormEntryField & TextStyles> = ({
       return localUri ? (
         <View
           style={{
-            justifyContent: 'center',
-            alignItems: 'center',
+            justifyContent: "center",
+            alignItems: "center",
           }}
         >
           <Image
@@ -274,8 +304,8 @@ export const ImageGridInputField: FC<FormEntryField & TextStyles> = ({
             <ActivityIndicator
               size={48}
               animating={true}
-              color={Colors.main}
-              style={{ position: 'absolute' }}
+              color={"white"}
+              style={{ position: "absolute" }}
             />
           )}
         </View>
@@ -286,7 +316,7 @@ export const ImageGridInputField: FC<FormEntryField & TextStyles> = ({
           style={[
             styles.touchable,
             {
-              backgroundColor: '#f5f5f5',
+              backgroundColor: "#f5f5f5",
               borderColor: Colors.main,
               width: ITEM_WIDTH,
               height: ITEM_HEIGHT,
@@ -297,7 +327,7 @@ export const ImageGridInputField: FC<FormEntryField & TextStyles> = ({
         </Pressable>
       )
     },
-    [getAssetsPublicUrl, onDeleteImagePress, onPress, width]
+    [getAssetsPublicUrl, onDeleteImagePress, onPress, width],
   )
 
   return (
@@ -319,45 +349,46 @@ export const ImageGridInputField: FC<FormEntryField & TextStyles> = ({
           please upload at least two photos
         </Text>
       )}
+      <FullScreenSpinner {...fullScreenSpinnerConfig} />
     </View>
   )
 }
 
 const styles = StyleSheet.create({
   option: {
-    width: '100%',
+    width: "100%",
     height: 60,
     borderWidth: 1,
-    borderColor: '#E6E6E6',
+    borderColor: "#E6E6E6",
     borderRadius: 12,
     fontSize: 18,
   },
   errorText: {
     fontSize: 14,
-    color: '#a60202',
+    color: "#a60202",
     paddingTop: 8,
   },
   touchable: {
     width: 120,
     height: 160,
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
     borderRadius: 22,
     margin: 4,
-    borderStyle: 'dashed',
+    borderStyle: "dashed",
     borderWidth: 1,
   },
   item: {
     width: 100,
     height: 100,
     borderRadius: 8,
-    backgroundColor: 'red',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "red",
+    justifyContent: "center",
+    alignItems: "center",
   },
   item_text: {
     fontSize: 40,
-    color: '#FFFFFF',
+    color: "#FFFFFF",
   },
 })

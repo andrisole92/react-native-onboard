@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useEffect, useRef, useState } from 'react'
+import React, { FC, useCallback, useEffect, useRef, useState } from "react"
 
 import {
   Dimensions,
@@ -13,26 +13,28 @@ import {
   TouchableOpacity,
   View,
   ViewStyle,
-} from 'react-native'
-import { BottomSheet, BottomSheetRef } from './BottomSheet'
-import { Footer } from './Footer'
-import { Page, PageProps } from './Page'
-import { DotPagination } from './Pagination/components/Dot'
-import { SwiperFlatList } from './Swiper'
-import { SwiperFlatListRefProps } from './Swiper/SwiperProps'
-import { FormEntryField } from './components/InputField'
-import { PrimaryButton, PrimaryButtonProps } from './components/PrimaryButton'
-import { SecondaryButton, SecondaryButtonProps } from './components/SecondaryButton'
+} from "react-native"
+import { useSafeAreaInsets } from "react-native-safe-area-context"
+import Toast from "react-native-toast-message"
+import { BottomSheet, BottomSheetRef } from "./BottomSheet"
+import { Footer } from "./Footer"
+import { Page, PageProps } from "./Page"
+import { DotPagination } from "./Pagination/components/Dot"
+import { SwiperFlatList } from "./Swiper"
+import { SwiperFlatListRefProps } from "./Swiper/SwiperProps"
+import { FormEntryField } from "./components/InputField"
+import { PrimaryButton, PrimaryButtonProps } from "./components/PrimaryButton"
+import { SecondaryButton, SecondaryButtonProps } from "./components/SecondaryButton"
 import {
   COLOR_PRIMARY_DEFAULT,
   COLOR_SECONDARY_DEFAULT,
   DEFAULT_FORM_ENTRY_TYPES,
   HORIZONTAL_PADDING_DEFAULT,
   VERTICAL_PADDING_DEFAULT,
-} from './constants'
-import { ImageCropContextProvider } from './contexts/ImageCropContext'
-import { DEFAULT_PAGE_TYPES } from './pageTypes'
-import { OnboardFlowProps, PageData, PaginationProps, StepResponseData, TextStyles } from './types'
+} from "./constants"
+import { ImageCropContextProvider } from "./contexts/ImageCropContext"
+import { DEFAULT_PAGE_TYPES } from "./pageTypes"
+import { OnboardFlowProps, PageData, PaginationProps, StepResponseData, TextStyles } from "./types"
 
 export type PageType = string
 
@@ -74,7 +76,7 @@ type PageWrapperProps = {
   totalPages: number
   goToNextPage: () => void
   goToPreviousPage: () => void
-  textAlign: 'center' | 'left' | 'right'
+  textAlign: "center" | "left" | "right"
   customVariables: object
   primaryColor: string
   secondaryColor: string
@@ -83,7 +85,7 @@ type PageWrapperProps = {
   uploadImageFunction?: (
     base64Image: string,
     imageExtension?: string,
-    pathname?: string
+    pathname?: string,
   ) => Promise<{ path: string; publicUrl: string }>
   scrollEnabled: boolean
   setScrollEnabled: React.Dispatch<React.SetStateAction<boolean>>
@@ -133,13 +135,13 @@ const PageWrapper = ({
     (dataProp) => {
       onSaveData?.(
         dataProp.data && dataProp.source ? dataProp : { data: dataProp, source: pageData },
-        getPageId(pageData, index)
+        getPageId(pageData, index),
       )
     },
-    [getPageId, index, onSaveData, pageData]
+    [getPageId, index, onSaveData, pageData],
   )
 
-  if (pageData?.type === 'custom' && pageData) return null
+  if (pageData?.type === "custom" && pageData) return null
 
   return pageData.type && pagesMerged[pageData.type] ? (
     <View key={index} style={{}}>
@@ -249,9 +251,9 @@ export const OnboardFlow: FC<OnboardFlowProps & TextStyles> = ({
   enableScroll = true,
   style,
   subtitleStyle,
-  textAlign = 'center',
+  textAlign = "center",
   titleStyle,
-  type = 'fullscreen',
+  type = "fullscreen",
   HeaderComponent = () => null,
   customVariables = {},
   FooterComponent = Footer,
@@ -269,6 +271,7 @@ export const OnboardFlow: FC<OnboardFlowProps & TextStyles> = ({
   deleteImage,
   ...props
 }) => {
+  const { top } = useSafeAreaInsets()
   const [pages, setPages] = useState<PageData[]>(pagesProp)
   const [scrollEnabled, setScrollEnabled] = useState(true)
 
@@ -279,8 +282,8 @@ export const OnboardFlow: FC<OnboardFlowProps & TextStyles> = ({
   const [modalVisible, setModalVisible] = useState(true)
   const [canContinueInternal, setCanContinueInternal] = useState(false)
   const swiperRef = useRef<SwiperFlatListRefProps>()
-  const [containerWidth, setContainerWidth] = useState<number>(Dimensions.get('window').width ?? 0)
-  const windowHeight = Dimensions.get('window').height
+  const [containerWidth, setContainerWidth] = useState<number>(Dimensions.get("window").width ?? 0)
+  const windowHeight = Dimensions.get("window").height
   const [maxTextHeight, setMaxTextHeight] = useState<number>(0)
   const bottomSheetRef = useRef<BottomSheetRef>(null)
   const currentPageValue = currentPage ?? currentPageInternal
@@ -303,7 +306,7 @@ export const OnboardFlow: FC<OnboardFlowProps & TextStyles> = ({
   }, [])
 
   const getPageId = useCallback((pageData: PageData, index: number) => {
-    return pageData?.id ?? index + ''
+    return pageData?.id ?? index + ""
   }, [])
 
   const handleIndexChange = useCallback(
@@ -320,7 +323,7 @@ export const OnboardFlow: FC<OnboardFlowProps & TextStyles> = ({
         return
       }
     },
-    [currentPageValue, onBack, onNext, setCurrentPageValue]
+    [currentPageValue, onBack, onNext, setCurrentPageValue],
   )
 
   const handleDone = useCallback(() => {
@@ -373,7 +376,7 @@ export const OnboardFlow: FC<OnboardFlowProps & TextStyles> = ({
         setMaxTextHeight(height)
       }
     },
-    [maxTextHeight]
+    [maxTextHeight],
   )
 
   const content = (
@@ -461,11 +464,12 @@ export const OnboardFlow: FC<OnboardFlowProps & TextStyles> = ({
             primaryButtonStyle={primaryButtonStyle}
             primaryButtonTextStyle={primaryButtonTextStyle}
           />
+          <Toast topOffset={top > 0 ? top : 20} />
         </SafeAreaView>
       </ImageBackground>
     </ImageCropContextProvider>
   )
-  if (fullscreenModal === true || type === 'fullscreen') {
+  if (fullscreenModal === true || type === "fullscreen") {
     return (
       <Modal hardwareAccelerated visible={modalVisible}>
         {content}
@@ -473,7 +477,7 @@ export const OnboardFlow: FC<OnboardFlowProps & TextStyles> = ({
     )
   }
 
-  if (type === 'bottom-sheet') {
+  if (type === "bottom-sheet") {
     return (
       <BottomSheet height={windowHeight * 0.8} ref={bottomSheetRef}>
         {content}
@@ -488,29 +492,29 @@ const styles = StyleSheet.create({
   footer: {
     flex: 1,
     paddingHorizontal: HORIZONTAL_PADDING_DEFAULT,
-    justifyContent: 'flex-end',
-    flexDirection: 'column',
+    justifyContent: "flex-end",
+    flexDirection: "column",
   },
   button: {
-    backgroundColor: '#000',
-    width: '100%',
+    backgroundColor: "#000",
+    width: "100%",
     borderRadius: 32,
     marginTop: VERTICAL_PADDING_DEFAULT,
     marginBottom: VERTICAL_PADDING_DEFAULT,
   },
   buttonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 18,
-    fontWeight: '500',
-    textAlign: 'center',
+    fontWeight: "500",
+    textAlign: "center",
     paddingVertical: VERTICAL_PADDING_DEFAULT,
   },
   container: {
     flex: 1,
-    flexDirection: 'column',
-    justifyContent: 'space-between',
-    alignItems: 'stretch',
-    alignContent: 'space-between',
+    flexDirection: "column",
+    justifyContent: "space-between",
+    alignItems: "stretch",
+    alignContent: "space-between",
   },
   content: {
     flex: 1,
@@ -527,12 +531,12 @@ const styles = StyleSheet.create({
     fontSize: 22,
     width: 30,
     height: 30,
-    textAlign: 'center',
+    textAlign: "center",
     lineHeight: 30,
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
   },
   dismissIconContainer: {
-    position: 'absolute',
+    position: "absolute",
     flex: 1,
     top: VERTICAL_PADDING_DEFAULT * 2,
     right: HORIZONTAL_PADDING_DEFAULT,
@@ -541,6 +545,6 @@ const styles = StyleSheet.create({
   header: {
     height: 64,
     paddingHorizontal: HORIZONTAL_PADDING_DEFAULT,
-    width: '100%',
+    width: "100%",
   },
 })
