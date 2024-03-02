@@ -1,9 +1,10 @@
-import { FC, ReactElement } from 'react'
-import { ImageSourcePropType, StyleProp, TextStyle, ViewStyle } from 'react-native'
-import { FooterProps } from '../Footer'
-import { PrimaryButtonProps } from '../components/PrimaryButton'
-import { SecondaryButtonProps } from '../components/SecondaryButton'
-import { FormElementTypesConfig, OnboardPageTypesConfig, PageType } from '../index'
+import { ImageResult } from "expo-image-manipulator"
+import { FC, ReactElement } from "react"
+import { ImageSourcePropType, StyleProp, TextStyle, ViewStyle } from "react-native"
+import { FooterProps } from "../Footer"
+import { PrimaryButtonProps } from "../components/PrimaryButton"
+import { SecondaryButtonProps } from "../components/SecondaryButton"
+import { FormElementTypesConfig, OnboardPageTypesConfig, PageType } from "../index"
 
 /* A FlowItem represents a single element in multiple types of Flows
   Generally, there is a title, subtitle, and image that the component will
@@ -44,7 +45,7 @@ export interface PageData extends FlowItemData {
 
 export interface TextStyles {
   subtitleStyle?: StyleProp<TextStyle> | undefined
-  textAlign?: 'left' | 'center' | 'right'
+  textAlign?: "left" | "center" | "right"
   textStyle?: StyleProp<TextStyle> | undefined
   titleStyle?: StyleProp<TextStyle> | undefined
 }
@@ -70,17 +71,17 @@ export interface OnboardFlowProps {
   deleteImage?: (string) => void
   getAssetsPublicUrl?: (string) => string
   uploadImageFunction?: (
-    base64Image: string,
+    imageResult: ImageResult,
     imageExtension?: string,
-    pathname?: string
-  ) => Promise<{ path: string; publicUrl: string }>
+    pathname?: string,
+  ) => Promise<{ path: string }>
   pages?: PageData[]
   paginationColor?: string
   paginationSelectedColor?: string
   showDismissButton?: boolean
   enableScroll?: boolean
   style?: StyleProp<ViewStyle> | undefined
-  type?: 'inline' | 'fullscreen' | 'bottom-sheet'
+  type?: "inline" | "fullscreen" | "bottom-sheet"
   customVariables?: object
   HeaderComponent?: FC<FooterProps>
   FooterComponent?: FC<FooterProps>

@@ -1,12 +1,20 @@
-import RNDateTimePicker from '@react-native-community/datetimepicker'
-import { format, subDays } from 'date-fns'
-import React, { FC, useCallback, useEffect, useRef, useState } from 'react'
-import { ColorValue, Keyboard, StyleSheet, Text, TextInput, View } from 'react-native'
-import DatePicker from 'react-native-date-picker'
-import { DatePickerInput } from 'react-native-paper-dates'
-import { DateTimePicker } from 'react-native-ui-lib'
-import { HORIZONTAL_PADDING_DEFAULT, VERTICAL_PADDING_DEFAULT } from '../constants'
-import { TextStyles } from '../types'
+import { format, subDays } from "date-fns"
+import React, { FC, useCallback, useEffect, useRef, useState } from "react"
+import {
+  ColorValue,
+  Keyboard,
+  NativeSyntheticEvent,
+  NativeTouchEvent,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  TextInputFocusEventData,
+  View,
+} from "react-native"
+import DatePicker from "react-native-date-picker"
+import { HORIZONTAL_PADDING_DEFAULT, VERTICAL_PADDING_DEFAULT } from "../constants"
+import { TextStyles } from "../types"
 
 export interface FormEntryField {
   label?: string
@@ -28,7 +36,7 @@ export interface FormEntryField {
   hasError?: boolean
   setHasError?: (value: boolean) => void
   autoFocus?: boolean
-  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters' | undefined
+  autoCapitalize?: "none" | "sentences" | "words" | "characters" | undefined
   backgroundColor?: ColorValue
   currentPage?: number
   pageIndex?: number
@@ -36,7 +44,7 @@ export interface FormEntryField {
   props?: any
 }
 
-const FAIL_SILENTLY = 'failedSilently'
+const FAIL_SILENTLY = "failedSilently"
 
 export const DateTimeField: FC<FormEntryField & TextStyles> = ({
   label,
@@ -61,16 +69,16 @@ export const DateTimeField: FC<FormEntryField & TextStyles> = ({
   currentPage,
   pageIndex,
 }) => {
-  const [errorMessage, setErrorMessage] = useState('')
+  const [errorMessage, setErrorMessage] = useState("")
   const [isFocused, setIsFocused] = useState(false)
 
   const [date, setDate] = useState(
-    prefill ? new Date(prefill ?? subDays(new Date(), 365)) : undefined
+    prefill ? new Date(prefill ?? subDays(new Date(), 365)) : undefined,
   )
 
   useEffect(() => {
     if (isRequired) {
-      setHasError(date == null)
+      setHasError?.(date == null)
     }
   }, [date, isRequired, setHasError])
 
@@ -81,10 +89,10 @@ export const DateTimeField: FC<FormEntryField & TextStyles> = ({
       setOpen(false)
       setDate(date)
       Keyboard.dismiss()
-      const newDate = date?.toISOString()?.split('T')?.[0]
-      onSaveData({ value: newDate, id })
+      const newDate = date?.toISOString()?.split("T")?.[0]
+      onSaveData?.({ value: newDate, id })
     },
-    [id, onSaveData]
+    [id, onSaveData],
   )
 
   const onCancel = useCallback(() => {
@@ -92,7 +100,8 @@ export const DateTimeField: FC<FormEntryField & TextStyles> = ({
     setOpen(false)
   }, [])
 
-  const openPicker = () => {
+  const openPicker = (e: NativeSyntheticEvent<NativeTouchEvent | TextInputFocusEventData>) => {
+    e.preventDefault()
     Keyboard.dismiss()
     setOpen(true)
   }
@@ -100,8 +109,9 @@ export const DateTimeField: FC<FormEntryField & TextStyles> = ({
   return (
     <View style={{}}>
       <DatePicker
+        theme="light"
         modal
-        mode={'date'}
+        mode={"date"}
         open={open}
         date={date ?? subDays(new Date(), 365)}
         maximumDate={subDays(new Date(), 2)}
@@ -110,12 +120,8 @@ export const DateTimeField: FC<FormEntryField & TextStyles> = ({
         onConfirm={onConfirm}
         onCancel={onCancel}
       />
-      <TextInput
-        onPressOut={openPicker}
+      <Pressable
         onPressIn={openPicker}
-        onFocus={openPicker}
-        value={date ? format(date, 'MMM dd, yyyy') : undefined}
-        placeholder={placeHolder}
         style={[
           styles.option,
           {
@@ -126,7 +132,9 @@ export const DateTimeField: FC<FormEntryField & TextStyles> = ({
           { borderColor: isFocused ? primaryColor : secondaryColor },
           textStyle,
         ]}
-      />
+      >
+        <Text>{date ? format(date, "MMM dd, yyyy") : placeHolder}</Text>
+      </Pressable>
 
       {errorMessage && errorMessage != FAIL_SILENTLY ? (
         <Text style={[textStyle, styles.errorText]}>{errorMessage}</Text>
@@ -137,15 +145,15 @@ export const DateTimeField: FC<FormEntryField & TextStyles> = ({
 
 const styles = StyleSheet.create({
   option: {
-    width: '100%',
+    width: "100%",
     borderWidth: 1,
-    borderColor: '#E6E6E6',
+    borderColor: "#E6E6E6",
     borderRadius: 12,
     fontSize: 18,
   },
   errorText: {
     fontSize: 14,
-    color: '#a60202',
+    color: "#a60202",
     paddingTop: 8,
   },
 })

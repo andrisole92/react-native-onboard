@@ -6,7 +6,8 @@ import { ActivityIndicator, ColorValue } from "react-native"
 
 import { Analytics } from "app/lib/Analytics"
 import { MyToast } from "app/lib/MyToast"
-import { SaveFormat, manipulateAsync } from "expo-image-manipulator"
+import { colors } from "app/theme"
+import { ImageResult, SaveFormat, manipulateAsync } from "expo-image-manipulator"
 import FaceDetection, {
   FaceDetectorContourMode,
   FaceDetectorLandmarkMode,
@@ -43,10 +44,10 @@ export interface FormEntryField {
   deleteImage?: (string) => void
   getAssetsPublicUrl?: (string) => string
   uploadImageFunction?: (
-    base64Image: string,
+    imageResult: ImageResult,
     imageExtension?: string,
     pathname?: string,
-  ) => Promise<{ path: string; publicUrl: string }>
+  ) => Promise<{ path: string }>
 }
 
 const MINIMUM_CROP_DIMENSIONS = {
@@ -108,14 +109,10 @@ export const AvatarInputField: FC<FormEntryField & TextStyles> = ({
         },
       )
 
-      const base64Img = await FileSystem.readAsStringAsync(manipResult.uri, {
-        encoding: FileSystem?.EncodingType?.Base64,
-      })
-
       setValue(undefined)
       setLoading(true)
       const res = await uploadImageFunction?.(
-        base64Img,
+        manipResult,
         manipResult.uri?.substr(manipResult.uri.lastIndexOf(".") + 1),
         "/avatars/",
       )
@@ -142,6 +139,7 @@ export const AvatarInputField: FC<FormEntryField & TextStyles> = ({
         }}
       >
         <Avatar
+          backgroundColor={colors.background}
           size={248}
           source={{
             uri: value != null ? getAssetsPublicUrl?.(value) : selectedPhoto?.uri,

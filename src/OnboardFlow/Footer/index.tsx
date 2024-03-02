@@ -1,16 +1,16 @@
-import React, { FC, useMemo } from 'react'
+import React, { FC, useMemo } from "react"
 import {
   KeyboardAvoidingView,
+  Platform,
   StyleProp,
   StyleSheet,
   TextStyle,
   View,
   ViewStyle,
-  useWindowDimensions,
-} from 'react-native'
-import { PRIMARY_BUTTON_TEXT_DEFAULT, PRIMARY_BUTTON_TEXT_LAST_PAGE_DEFAULT } from '../constants'
-import { OnboardComponents } from '../index'
-import { PageData } from '../types'
+} from "react-native"
+import { PRIMARY_BUTTON_TEXT_DEFAULT, PRIMARY_BUTTON_TEXT_LAST_PAGE_DEFAULT } from "../constants"
+import { OnboardComponents } from "../index"
+import { PageData } from "../types"
 
 export interface FooterProps {
   style?: StyleProp<ViewStyle> | undefined
@@ -58,37 +58,41 @@ export const Footer: FC<FooterProps> = ({
   const totalPages = pages?.length ?? 0
 
   return (
-    <KeyboardAvoidingView behavior="position" style={[style]} {...props}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS == "ios" ? "position" : "height"}
+      style={[style]}
+      {...props}
+    >
       <Components.PaginationComponent
         paginationColor={paginationColor}
         paginationSelectedColor={paginationSelectedColor}
         currentPage={currentPage}
         totalPages={totalPages}
       />
-      <View style={{ display: 'flex', flexDirection: 'row', width: '100%' }}>
+      <View style={{ display: "flex", flexDirection: "row", width: "100%" }}>
         {isConditional ? (
           <>
             <Components.SecondaryButtonComponent
-              text={'No'}
+              text={"No"}
               currentPage={currentPage}
               totalPages={totalPages}
               disabled={!canContinue}
               style={{
                 marginBottom: 0,
-                width: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                width: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
               }}
               onPress={goToNextPage}
             />
             <Components.PrimaryButtonComponent
-              text={'Yes'}
+              text={"Yes"}
               currentPage={currentPage}
               totalPages={totalPages}
               goToNextPage={goToNextPage}
               disabled={!canContinue}
-              style={{ ...primaryButtonStyle, width: '50%' }}
+              style={{ ...primaryButtonStyle, width: "50%" }}
               textStyle={primaryButtonTextStyle}
             />
           </>
@@ -107,5 +111,3 @@ export const Footer: FC<FooterProps> = ({
     </KeyboardAvoidingView>
   )
 }
-
-const styles = StyleSheet.create({})

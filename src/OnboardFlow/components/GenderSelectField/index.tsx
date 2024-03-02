@@ -1,12 +1,13 @@
-import * as FileSystem from 'expo-file-system'
-import * as ImagePicker from 'expo-image-picker'
-import ImageEditor from 'image-crop/src'
-import React, { FC, useCallback, useEffect, useRef, useState } from 'react'
+import * as FileSystem from "expo-file-system"
+import * as ImagePicker from "expo-image-picker"
+import ImageEditor from "image-crop/src"
+import React, { FC, useCallback, useEffect, useRef, useState } from "react"
 
-import { ColorValue, Pressable, StyleSheet } from 'react-native'
+import { ColorValue, Pressable, StyleSheet } from "react-native"
 
-import { Colors, Text, View } from 'react-native-ui-lib'
-import { TextStyles } from '../../types'
+import { ImageResult } from "expo-image-manipulator"
+import { Colors, Text, View } from "react-native-ui-lib"
+import { TextStyles } from "../../types"
 
 export interface FormEntryField {
   label?: string
@@ -27,7 +28,7 @@ export interface FormEntryField {
   setCanContinue?: (value: boolean) => void
   setHasError?: (value: boolean) => void
   autoFocus?: boolean
-  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters' | undefined
+  autoCapitalize?: "none" | "sentences" | "words" | "characters" | undefined
   backgroundColor?: ColorValue
   currentPage?: number
   pageIndex?: number
@@ -36,10 +37,10 @@ export interface FormEntryField {
   deleteImage?: (string) => void
   getAssetsPublicUrl?: (string) => string
   uploadImageFunction?: (
-    base64Image: string,
+    imageResult: ImageResult,
     imageExtension?: string,
-    pathname?: string
-  ) => Promise<{ path: string; publicUrl: string }>
+    pathname?: string,
+  ) => Promise<{ path: string }>
 }
 
 const FONT_SIZE = 16
@@ -59,7 +60,7 @@ export const GenderSelectField: FC<FormEntryField & TextStyles> = ({
       setValue(gender)
       onSaveData({ value: gender, id })
     },
-    [id, onSaveData]
+    [id, onSaveData],
   )
 
   useEffect(() => {
@@ -67,22 +68,22 @@ export const GenderSelectField: FC<FormEntryField & TextStyles> = ({
   }, [setHasError, value])
 
   return (
-    <View flex style={{ marginVertical: 12, flexDirection: 'column' }}>
-      <View style={{ display: 'flex', flexDirection: 'row' }}>
+    <View flex style={{ marginVertical: 12, flexDirection: "column" }}>
+      <View style={{ display: "flex", flexDirection: "row" }}>
         <Pressable
-          onPress={() => selectGender('Male')}
+          onPress={() => selectGender("Male")}
           testID="signUpGenderOptionMale"
           style={[
             styles.genderSelectOption,
             { marginRight: 4 },
-            value === 'Male' ? { backgroundColor: 'black' } : {},
+            value === "Male" ? { backgroundColor: "black" } : {},
           ]}
         >
           <Text
             style={{
-              fontWeight: 'bold',
+              fontWeight: "bold",
               fontSize: FONT_SIZE,
-              color: value === 'Male' ? Colors.white : Colors.fontPrimary,
+              color: value === "Male" ? Colors.white : Colors.fontPrimary,
             }}
           >
             Male
@@ -90,18 +91,18 @@ export const GenderSelectField: FC<FormEntryField & TextStyles> = ({
         </Pressable>
         <Pressable
           testID="signUpGenderOptionFemale"
-          onPress={() => selectGender('Female')}
+          onPress={() => selectGender("Female")}
           style={[
             styles.genderSelectOption,
             { marginLeft: 4 },
-            value === 'Female' ? { backgroundColor: 'black' } : {},
+            value === "Female" ? { backgroundColor: "black" } : {},
           ]}
         >
           <Text
             style={{
-              fontWeight: 'bold',
+              fontWeight: "bold",
               fontSize: FONT_SIZE,
-              color: value === 'Female' ? Colors.white : Colors.fontPrimary,
+              color: value === "Female" ? Colors.white : Colors.fontPrimary,
             }}
           >
             Female
@@ -114,27 +115,27 @@ export const GenderSelectField: FC<FormEntryField & TextStyles> = ({
 
 const styles = StyleSheet.create({
   option: {
-    width: '100%',
+    width: "100%",
     height: 60,
     borderWidth: 1,
-    borderColor: '#E6E6E6',
+    borderColor: "#E6E6E6",
     borderRadius: 12,
     fontSize: 18,
   },
   errorText: {
     fontSize: 14,
-    color: '#a60202',
+    color: "#a60202",
     paddingTop: 8,
   },
   genderSelectOption: {
-    display: 'flex',
-    flexDirection: 'row',
+    display: "flex",
+    flexDirection: "row",
     flex: 1,
     borderRadius: 12,
     padding: 5,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: "#FAFAFA",
     height: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
 })

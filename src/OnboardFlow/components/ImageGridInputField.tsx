@@ -21,7 +21,7 @@ import FaceDetection, {
 
 import { FullScreenSpinner } from "app/components/FullScreenSpinner"
 import { Analytics } from "app/lib/Analytics"
-import { SaveFormat, manipulateAsync } from "expo-image-manipulator"
+import { ImageResult, SaveFormat, manipulateAsync } from "expo-image-manipulator"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { Colors, Text, View } from "react-native-ui-lib"
 import { useImageCropContext } from "../contexts/ImageCropContext"
@@ -56,10 +56,10 @@ export interface FormEntryField {
   deleteImage?: (string) => void
   getAssetsPublicUrl?: (string) => string
   uploadImageFunction?: (
-    base64Image: string,
+    imageResult: ImageResult,
     imageExtension?: string,
     pathname?: string,
-  ) => Promise<{ path: string; publicUrl: string }>
+  ) => Promise<{ path: string }>
   setScrollEnabled?: React.Dispatch<React.SetStateAction<boolean>>
 }
 
@@ -179,10 +179,6 @@ export const ImageGridInputField: FC<FormEntryField & TextStyles> = ({
           },
         )
 
-        const base64Img = await FileSystem.readAsStringAsync(manipResult.uri, {
-          encoding: FileSystem?.EncodingType?.Base64,
-        })
-
         setData((localData) =>
           localData?.map((localItem) =>
             localItem?.index === pic_index
@@ -191,8 +187,8 @@ export const ImageGridInputField: FC<FormEntryField & TextStyles> = ({
           ),
         )
 
-        const res = await uploadImageFunction(
-          base64Img,
+        const res = await uploadImageFunction?.(
+          manipResult,
           manipResult.uri?.substr(localUri.lastIndexOf(".") + 1),
           "/images/",
         )
@@ -239,7 +235,7 @@ export const ImageGridInputField: FC<FormEntryField & TextStyles> = ({
                   idx === picIndex ? { ..._, pic: undefined, localUri: undefined } : _,
                 ),
               )
-              deleteImage(value)
+              deleteImage?.(value)
             }
           },
         },

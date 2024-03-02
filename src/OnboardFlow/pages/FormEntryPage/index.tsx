@@ -1,10 +1,11 @@
-import React, { FC, useCallback, useEffect, useState } from 'react'
-import { KeyboardAvoidingView, ScrollView, StyleSheet, Text, View } from 'react-native'
-import { FormEntryField, InputField } from '../../components/InputField'
-import { TextStack } from '../../components/TextStack'
-import { HORIZONTAL_PADDING_DEFAULT } from '../../constants'
-import { OnboardPageConfigParams } from '../../index'
-import { PageData } from '../../types'
+import { ImageResult } from "expo-image-manipulator"
+import React, { FC, useCallback, useEffect, useState } from "react"
+import { KeyboardAvoidingView, ScrollView, StyleSheet, Text, View } from "react-native"
+import { FormEntryField, InputField } from "../../components/InputField"
+import { TextStack } from "../../components/TextStack"
+import { HORIZONTAL_PADDING_DEFAULT } from "../../constants"
+import { OnboardPageConfigParams } from "../../index"
+import { PageData } from "../../types"
 
 export interface FormEntryPageProps {
   fields: FormEntryField[]
@@ -37,10 +38,10 @@ type FieldWrapperProps = {
   deleteImage?: (string) => void
   getAssetsPublicUrl?: (string) => string
   uploadImageFunction?: (
-    base64Image: string,
+    imageResult: ImageResult,
     imageExtension?: string,
-    pathname?: string
-  ) => Promise<{ path: string; publicUrl: string }>
+    pathname?: string,
+  ) => Promise<{ path: string }>
 }
 
 const FieldWrapper = ({
@@ -82,14 +83,14 @@ const FieldWrapper = ({
 
   const handleSaveData = useCallback(
     (data) => {
-      formData[input.id ?? index + ''] = data
+      formData[input.id ?? index + ""] = data
       setFormData(formData)
       onSaveData?.({
         source: pageData,
         data,
       })
     },
-    [formData, index, input.id, onSaveData, pageData, setFormData]
+    [formData, index, input.id, onSaveData, pageData, setFormData],
   )
 
   const autoFocus = index == 0 && currentPage == pageIndex
@@ -125,7 +126,7 @@ const FieldWrapper = ({
           secondaryColor: secondaryColor,
           canContinue: canContinue,
           setCanContinue: setCanContinue,
-          backgroundColor: style ? StyleSheet.flatten(style)?.backgroundColor : '#FFFFFF',
+          backgroundColor: style ? StyleSheet.flatten(style)?.backgroundColor : "#FFFFFF",
           hasError,
           setHasError,
           autoFocus: autoFocus,
@@ -163,7 +164,7 @@ const FieldWrapper = ({
           setCanContinue={setCanContinue}
           hasError={hasError}
           setHasError={setHasError}
-          backgroundColor={style ? StyleSheet.flatten(style)?.backgroundColor : '#FFFFFF'}
+          backgroundColor={style ? StyleSheet.flatten(style)?.backgroundColor : "#FFFFFF"}
           autoFocus={autoFocus}
           currentPage={currentPage}
           pageIndex={pageIndex}
@@ -206,9 +207,9 @@ export const FormEntryPage: FC<OnboardPageConfigParams<FormEntryPageProps>> = ({
   useEffect(() => {
     if (currentPage == pageIndex) {
       if (errorFieldIds.size > 0) {
-        setCanContinue(false)
+        setCanContinue?.(false)
       } else {
-        setCanContinue(true)
+        setCanContinue?.(true)
       }
     }
   }, [errorFieldIds, currentPage, pageIndex, setCanContinue])
@@ -270,6 +271,6 @@ export const FormEntryPage: FC<OnboardPageConfigParams<FormEntryPageProps>> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    flexDirection: 'column',
+    flexDirection: "column",
   },
 })

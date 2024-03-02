@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import React, { useCallback } from "react"
 import {
   Dimensions,
   FlatList,
@@ -6,9 +6,10 @@ import {
   Platform,
   StyleSheet,
   useWindowDimensions,
-} from 'react-native'
+} from "react-native"
+import PagerView, { PagerViewProps } from "react-native-pager-view"
 
-import { SwiperFlatListProps, SwiperFlatListRefProps } from './SwiperProps'
+import { SwiperFlatListProps, SwiperFlatListRefProps } from "./SwiperProps"
 
 const MILLISECONDS = 1000
 const FIRST_INDEX = 0
@@ -18,7 +19,7 @@ type T1 = any
 type ScrollToIndex = { index: number; animated?: boolean }
 type ScrollToIndexInternal = { useOnChangeIndex: boolean }
 
-const { width: WIDTH, height: HEIGHT } = Dimensions.get('window')
+const { width: WIDTH, height: HEIGHT } = Dimensions.get("window")
 
 export const SwiperFlatList = React.forwardRef(
   (
@@ -46,11 +47,11 @@ export const SwiperFlatList = React.forwardRef(
       scrollEnabled: scrollEnabledProp = true,
       ...props
     }: SwiperFlatListProps<T1>,
-    ref: React.Ref<SwiperFlatListRefProps>
+    ref: React.Ref<PagerView>,
   ) => {
     const { width } = useWindowDimensions()
     let _data: unknown[] = []
-    let _renderItem: FlatListProps<any>['renderItem']
+    let _renderItem: FlatListProps<any>["renderItem"]
 
     if (children) {
       // github.com/gusgard/react-native-swiper-flatlist/issues/40
@@ -60,7 +61,7 @@ export const SwiperFlatList = React.forwardRef(
       _data = data
       _renderItem = renderItem
     } else {
-      console.error('Invalid props, `data` or `children` is required')
+      console.error("Invalid props, `data` or `children` is required")
     }
     const size = _data.length
     // Items to render in the initial batch.
@@ -69,7 +70,7 @@ export const SwiperFlatList = React.forwardRef(
     const [previousIndex, setPreviousIndex] = React.useState(index)
 
     const [ignoreOnMomentumScrollEnd, setIgnoreOnMomentumScrollEnd] = React.useState(false)
-    const flatListElement = React.useRef<FlatList<unknown>>(null)
+    const flatListElement = React.useRef<PagerView>(null)
     const [scrollEnabled, setScrollEnabled] = React.useState(!disableGesture)
     const [autoPlayDisturbed, setAutoPlayDisturbed] = React.useState(false)
     const [lastIndexChange, setLastIndexChange] = React.useState(-1)
@@ -88,7 +89,7 @@ export const SwiperFlatList = React.forwardRef(
           onChangeIndex?.({ index: _index, prevIndex: _prevIndex })
         }
       },
-      [lastIndexChange, onChangeIndex]
+      [lastIndexChange, onChangeIndex],
     )
 
     const _scrollToIndex = useCallback(
@@ -121,7 +122,7 @@ export const SwiperFlatList = React.forwardRef(
         // https://github.com/facebook/react-native/issues/21718
         flatListElement?.current?.scrollToIndex(newParams)
       },
-      [_onChangeIndex, currentIndex, previousIndex]
+      [_onChangeIndex, currentIndex, previousIndex],
     )
 
     // change the index when the user swipe the items
@@ -131,25 +132,25 @@ export const SwiperFlatList = React.forwardRef(
       }
     }, [_onChangeIndex, currentIndex, previousIndex, scrollEnabled])
 
-    React.useImperativeHandle(ref, () => ({
-      scrollToIndex: (item: ScrollToIndex) => {
-        setScrollEnabled(true)
-        _scrollToIndex(item, { useOnChangeIndex: true })
-        setScrollEnabled(!disableGesture)
-      },
-      getCurrentIndex: () => currentIndex,
-      getPrevIndex: () => previousIndex,
-      goToLastIndex: () => {
-        setScrollEnabled(true)
-        _scrollToIndex({ index: size - 1 }, { useOnChangeIndex: false })
-        setScrollEnabled(!disableGesture)
-      },
-      goToFirstIndex: () => {
-        setScrollEnabled(true)
-        _scrollToIndex({ index: FIRST_INDEX }, { useOnChangeIndex: false })
-        setScrollEnabled(!disableGesture)
-      },
-    }))
+    // React.useImperativeHandle(ref, () => ({
+    //   scrollToIndex: (item: ScrollToIndex) => {
+    //     setScrollEnabled(true)
+    //     _scrollToIndex(item, { useOnChangeIndex: true })
+    //     setScrollEnabled(!disableGesture)
+    //   },
+    //   getCurrentIndex: () => currentIndex,
+    //   getPrevIndex: () => previousIndex,
+    //   goToLastIndex: () => {
+    //     setScrollEnabled(true)
+    //     _scrollToIndex({ index: size - 1 }, { useOnChangeIndex: false })
+    //     setScrollEnabled(!disableGesture)
+    //   },
+    //   goToFirstIndex: () => {
+    //     setScrollEnabled(true)
+    //     _scrollToIndex({ index: FIRST_INDEX }, { useOnChangeIndex: false })
+    //     setScrollEnabled(!disableGesture)
+    //   },
+    // }))
 
     React.useEffect(() => {
       const isLastIndexEnd = autoplayInvertDirection
@@ -191,17 +192,17 @@ export const SwiperFlatList = React.forwardRef(
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [autoplay, currentIndex, _data.length])
 
-    const keyExtractor: FlatListProps<unknown>['keyExtractor'] = useCallback(
+    const keyExtractor: FlatListProps<unknown>["keyExtractor"] = useCallback(
       (_item, _index) => _index.toString(),
-      []
+      [],
     )
 
-    const onScrollToIndexFailed: FlatListProps<unknown>['onScrollToIndexFailed'] = useCallback(
+    const onScrollToIndexFailed: FlatListProps<unknown>["onScrollToIndexFailed"] = useCallback(
       (info) =>
         setTimeout(() =>
-          _scrollToIndex({ index: info.index, animated: false }, { useOnChangeIndex: true })
+          _scrollToIndex({ index: info.index, animated: false }, { useOnChangeIndex: true }),
         ),
-      [_scrollToIndex]
+      [_scrollToIndex],
     )
 
     const onMomentumScrollEndWrapper = useCallback(
@@ -218,12 +219,12 @@ export const SwiperFlatList = React.forwardRef(
           setCurrentIndex(newIndex)
         }
       },
-      [currentIndex, width]
+      [currentIndex, width],
     )
 
     const flatListProps = {
       scrollEnabled: scrollEnabled && scrollEnabledProp,
-      ref: flatListElement,
+      ref,
       keyExtractor,
       horizontal: !vertical,
       showsHorizontalScrollIndicator: false,
@@ -245,7 +246,7 @@ export const SwiperFlatList = React.forwardRef(
       testID: e2eID,
     }
 
-    if (Platform.OS === 'web') {
+    if (Platform.OS === "web") {
       if (props.getItemLayout === undefined) {
         // NOTE: should we pass height/width for getItemLayout?
         const ITEM_DIMENSION = vertical ? HEIGHT : WIDTH
@@ -258,15 +259,18 @@ export const SwiperFlatList = React.forwardRef(
         }
       }
 
-      ;(flatListProps as any).dataSet = { 'paging-enabled-fix': true }
+      ;(flatListProps as any).dataSet = { "paging-enabled-fix": true }
     }
 
     return (
       <React.Fragment>
-        <FlatList {...flatListProps} />
+        <PagerView
+          {...flatListProps}
+          style={{ backgroundColor: "red", flex: 1, width: "100%", height: "100%" }}
+        />
       </React.Fragment>
     )
-  }
+  },
 )
 
 const styles = StyleSheet.create({
@@ -274,8 +278,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   page: {
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
 })
 

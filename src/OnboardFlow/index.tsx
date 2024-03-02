@@ -1,5 +1,6 @@
 import React, { FC, useCallback, useEffect, useRef, useState } from "react"
 
+import { ImageResult } from "expo-image-manipulator"
 import {
   Dimensions,
   ImageBackground,
@@ -14,6 +15,7 @@ import {
   View,
   ViewStyle,
 } from "react-native"
+import PagerView, { PagerViewProps } from "react-native-pager-view"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import Toast from "react-native-toast-message"
 import { BottomSheet, BottomSheetRef } from "./BottomSheet"
@@ -22,6 +24,7 @@ import { Page, PageProps } from "./Page"
 import { DotPagination } from "./Pagination/components/Dot"
 import { SwiperFlatList } from "./Swiper"
 import { SwiperFlatListRefProps } from "./Swiper/SwiperProps"
+
 import { FormEntryField } from "./components/InputField"
 import { PrimaryButton, PrimaryButtonProps } from "./components/PrimaryButton"
 import { SecondaryButton, SecondaryButtonProps } from "./components/SecondaryButton"
@@ -83,10 +86,10 @@ type PageWrapperProps = {
   deleteImage?: (string) => void
   getAssetsPublicUrl?: (string) => string
   uploadImageFunction?: (
-    base64Image: string,
+    imageResult: ImageResult,
     imageExtension?: string,
     pathname?: string,
-  ) => Promise<{ path: string; publicUrl: string }>
+  ) => Promise<{ path: string }>
   scrollEnabled: boolean
   setScrollEnabled: React.Dispatch<React.SetStateAction<boolean>>
   canContinue: boolean
@@ -143,8 +146,13 @@ const PageWrapper = ({
 
   if (pageData?.type === "custom" && pageData) return null
 
+  // return (
+  //   <View>
+  //     <Text>First page</Text>
+  //   </View>
+  // )
   return pageData.type && pagesMerged[pageData.type] ? (
-    <View key={index} style={{}}>
+    <View key={index} style={{ height: "100%" }}>
       {pagesMerged[pageData.type]({
         formElementTypes: formElementTypes,
         style: [pageStyle, pageData.style ? (pageData.style as StyleProp<ViewStyle>) : null],
@@ -281,7 +289,7 @@ export const OnboardFlow: FC<OnboardFlowProps & TextStyles> = ({
   const [currentPageInternal, setCurrentPageInternal] = useState(0)
   const [modalVisible, setModalVisible] = useState(true)
   const [canContinueInternal, setCanContinueInternal] = useState(false)
-  const swiperRef = useRef<SwiperFlatListRefProps>()
+  const swiperRef = useRef<PagerView>(null)
   const [containerWidth, setContainerWidth] = useState<number>(Dimensions.get("window").width ?? 0)
   const windowHeight = Dimensions.get("window").height
   const [maxTextHeight, setMaxTextHeight] = useState<number>(0)
@@ -337,7 +345,7 @@ export const OnboardFlow: FC<OnboardFlowProps & TextStyles> = ({
     if (currPage?.isConditional) {
       setPages((val) => [
         ...val.slice(0, currentPageValue + 1),
-        ...currPage.pages,
+        ...(currPage.pages ?? []),
         ...val.slice(currentPageValue + 1),
       ])
     }
@@ -346,18 +354,18 @@ export const OnboardFlow: FC<OnboardFlowProps & TextStyles> = ({
       handleDone()
       return
     }
-    const nextIndex = swiperRef.current?.getCurrentIndex() + 1
-    setCurrentPageValue(nextIndex)
-    swiperRef.current?.scrollToIndex({ index: nextIndex })
+    const nextIndex = currentPageValue + 1
+    // setCurrentPageValue(nextIndex)
+    swiperRef.current?.setPage(nextIndex)
   }, [currentPageValue, handleDone, pages, setCurrentPageValue])
 
   const goToPreviousPage = useCallback(() => {
-    const nextIndex = swiperRef.current?.getCurrentIndex() - 1
+    const nextIndex = currentPageValue - 1
     if (nextIndex < 0) {
       return
     }
-    setCurrentPageValue(nextIndex)
-    swiperRef.current?.scrollToIndex({ index: nextIndex })
+    // setCurrentPageValue(nextIndex)
+    swiperRef.current?.setPage(nextIndex)
   }, [setCurrentPageValue])
 
   const DismissButton = useCallback(() => {
@@ -404,17 +412,15 @@ export const OnboardFlow: FC<OnboardFlowProps & TextStyles> = ({
             />
           ) : null}
           <View style={styles.content}>
-            <SwiperFlatList
-              disableGesture={!enableScroll ? true : !canContinueValue}
-              onChangeIndex={handleIndexChange}
+            <PagerView
+              style={{ width: "100%", height: "100%" }}
               ref={swiperRef}
-              index={currentPageValue}
-              autoplay={autoPlay}
-              scrollEnabled={scrollEnabled}
+              onPageSelected={(e) => setCurrentPageValue(e?.nativeEvent?.position)}
             >
               {pages?.map((pageData, index) => {
                 return (
                   <PageWrapper
+                    key={index}
                     deleteImage={deleteImage}
                     key={pageData?.title}
                     pagesMerged={pagesMerged}
@@ -447,7 +453,7 @@ export const OnboardFlow: FC<OnboardFlowProps & TextStyles> = ({
                   />
                 )
               })}
-            </SwiperFlatList>
+            </PagerView>
           </View>
           <FooterComponent
             paginationSelectedColor={paginationSelectedColor}
