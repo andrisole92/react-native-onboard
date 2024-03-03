@@ -317,22 +317,22 @@ export const OnboardFlow: FC<OnboardFlowProps & TextStyles> = ({
     return pageData?.id ?? index + ""
   }, [])
 
-  const handleIndexChange = useCallback(
-    (item: { index: number; prevIndex: number }) => {
-      if (item.index != currentPageValue) {
-        setCurrentPageValue(item.index)
-      }
-      if (item.index > item.prevIndex) {
-        onNext?.()
-        return
-      }
-      if (item.index < item.prevIndex) {
-        onBack?.()
-        return
-      }
-    },
-    [currentPageValue, onBack, onNext, setCurrentPageValue],
-  )
+  // const handleIndexChange = useCallback(
+  //   (item: { index: number; prevIndex: number }) => {
+  //     if (item.index != currentPageValue) {
+  //       setCurrentPageValue(item.index)
+  //     }
+  //     if (item.index > item.prevIndex) {
+  //       onNext?.()
+  //       return
+  //     }
+  //     if (item.index < item.prevIndex) {
+  //       onBack?.()
+  //       return
+  //     }
+  //   },
+  //   [currentPageValue, onBack, onNext, setCurrentPageValue],
+  // )
 
   const handleDone = useCallback(() => {
     setModalVisible(false)
@@ -357,7 +357,7 @@ export const OnboardFlow: FC<OnboardFlowProps & TextStyles> = ({
     const nextIndex = currentPageValue + 1
     // setCurrentPageValue(nextIndex)
     swiperRef.current?.setPage(nextIndex)
-  }, [currentPageValue, handleDone, pages, setCurrentPageValue])
+  }, [currentPageValue, handleDone, pages])
 
   const goToPreviousPage = useCallback(() => {
     const nextIndex = currentPageValue - 1
@@ -366,7 +366,7 @@ export const OnboardFlow: FC<OnboardFlowProps & TextStyles> = ({
     }
     // setCurrentPageValue(nextIndex)
     swiperRef.current?.setPage(nextIndex)
-  }, [setCurrentPageValue])
+  }, [currentPageValue])
 
   const DismissButton = useCallback(() => {
     return (
@@ -415,7 +415,10 @@ export const OnboardFlow: FC<OnboardFlowProps & TextStyles> = ({
             <PagerView
               style={{ width: "100%", height: "100%" }}
               ref={swiperRef}
-              onPageSelected={(e) => setCurrentPageValue(e?.nativeEvent?.position)}
+              onPageSelected={(e) => {
+                setCurrentPageValue(e?.nativeEvent?.position)
+                onNext?.()
+              }}
             >
               {pages?.map((pageData, index) => {
                 return (
