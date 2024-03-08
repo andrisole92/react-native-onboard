@@ -473,7 +473,7 @@ export const OnboardFlow: FC<OnboardFlowProps & TextStyles> = ({
             primaryButtonStyle={primaryButtonStyle}
             primaryButtonTextStyle={primaryButtonTextStyle}
           />
-          <Toast topOffset={top > 0 ? top : 20} />
+          <Toast topOffset={top > 0 ? top + 12 : 20} />
         </SafeAreaView>
       </ImageBackground>
     </ImageCropContextProvider>
