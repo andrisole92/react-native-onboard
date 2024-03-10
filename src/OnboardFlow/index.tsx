@@ -413,6 +413,7 @@ export const OnboardFlow: FC<OnboardFlowProps & TextStyles> = ({
           ) : null}
           <View style={styles.content}>
             <PagerView
+              scrollEnabled={canContinueValue}
               style={{ width: "100%", height: "100%" }}
               ref={swiperRef}
               onPageSelected={(e) => {
@@ -526,6 +527,7 @@ const styles = StyleSheet.create({
     alignContent: "space-between",
   },
   content: {
+    paddingTop: 24,
     flex: 1,
     flexGrow: 4,
   },

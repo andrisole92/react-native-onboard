@@ -1,9 +1,8 @@
-import { ImageResult } from 'expo-image-manipulator'
-import * as ImagePicker from 'expo-image-picker'
-import ImageEditor from 'image-crop/src'
-import * as React from 'react'
-import { createContext, useCallback, useContext, useRef, useState } from 'react'
-import { View } from 'react-native'
+import { ImageResult } from "expo-image-manipulator"
+import * as ImagePicker from "expo-image-picker"
+import ImageEditor from "image-crop/src"
+import * as React from "react"
+import { createContext, useCallback, useContext, useRef, useState } from "react"
 
 const MINIMUM_CROP_DIMENSIONS = {
   width: 50,
@@ -15,7 +14,7 @@ type Options = { fixedCropAspectRatio?: number }
 type ContextType = {
   cropImage: (
     asset: ImagePicker.ImagePickerAsset,
-    options?: Options
+    options?: Options,
   ) => Promise<ImagePicker.ImagePickerAsset>
   pickImage: (options?: Options) => Promise<ImagePicker.ImagePickerAsset>
 }
@@ -33,7 +32,7 @@ export function ImageCropContextProvider({ children }: Props): React.ReactElemen
   const promiseRef = useRef<
     | {
         resolve: (
-          value: ImagePicker.ImagePickerAsset | PromiseLike<ImagePicker.ImagePickerAsset>
+          value: ImagePicker.ImagePickerAsset | PromiseLike<ImagePicker.ImagePickerAsset>,
         ) => void
         reject: (reason?: any) => void
       }
@@ -43,7 +42,7 @@ export function ImageCropContextProvider({ children }: Props): React.ReactElemen
 
   const onCloseEditor = useCallback(async () => {
     setMImage(null)
-    promiseRef?.current?.reject(new Error('Editor Was Closed'))
+    promiseRef?.current?.reject(new Error("Editor Was Closed"))
   }, [])
 
   const onEditingComplete = useCallback(async (croppedImage: any) => {
@@ -53,7 +52,7 @@ export function ImageCropContextProvider({ children }: Props): React.ReactElemen
   const cropImage = useCallback(
     async (
       asset: ImagePicker.ImagePickerAsset,
-      options?: Options
+      options?: Options,
     ): Promise<ImagePicker.ImagePickerAsset> => {
       setMImage(asset)
       setAspectRation(options?.fixedCropAspectRatio ?? DEFAULT_ASPECT_RATIO)
@@ -62,7 +61,7 @@ export function ImageCropContextProvider({ children }: Props): React.ReactElemen
         promiseRef.current = { resolve, reject }
       })
     },
-    []
+    [],
   )
 
   const pickImage = useCallback(
@@ -72,9 +71,12 @@ export function ImageCropContextProvider({ children }: Props): React.ReactElemen
         quality: 0.8,
         base64: true,
       })
+      if (result.canceled) {
+        throw new Error("Image Picker was canceled")
+      }
       return cropImage(result?.assets?.[0], options)
     },
-    [cropImage]
+    [cropImage],
   )
 
   return (
@@ -97,7 +99,7 @@ export function ImageCropContextProvider({ children }: Props): React.ReactElemen
 export function useImageCropContext(): ContextType {
   const context = useContext(ImageCropContext)
   if (context == null) {
-    throw new Error('useImageCropContext should be used within ImageCropContext')
+    throw new Error("useImageCropContext should be used within ImageCropContext")
   }
   return context
 }
