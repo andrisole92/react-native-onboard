@@ -116,6 +116,7 @@ const FieldWrapper = ({
           onSaveData: handleSaveData,
           label: input.label,
           placeHolder: input.placeHolder,
+          options: input.options,
           type: input.type,
           getErrorMessage: input.getErrorMessage,
           isRequired: input.isRequired,

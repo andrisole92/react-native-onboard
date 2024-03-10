@@ -1,4 +1,4 @@
-import { format, subDays } from "date-fns"
+import { format, subDays, subYears } from "date-fns"
 import React, { FC, useCallback, useEffect, useRef, useState } from "react"
 import {
   ColorValue,
@@ -42,6 +42,7 @@ export interface FormEntryField {
   pageIndex?: number
   totalPages?: number
   props?: any
+  options: any
 }
 
 const FAIL_SILENTLY = "failedSilently"
@@ -68,6 +69,7 @@ export const DateTimeField: FC<FormEntryField & TextStyles> = ({
   autoCapitalize,
   currentPage,
   pageIndex,
+  options,
 }) => {
   const [errorMessage, setErrorMessage] = useState("")
   const [isFocused, setIsFocused] = useState(false)
@@ -113,8 +115,9 @@ export const DateTimeField: FC<FormEntryField & TextStyles> = ({
         modal
         mode={"date"}
         open={open}
-        date={date ?? subDays(new Date(), 365)}
-        maximumDate={subDays(new Date(), 2)}
+        date={date ?? options?.defaultDate}
+        maximumDate={options?.maximumDate}
+        minimumDate={options?.minimumDate}
         timeZoneOffsetInMinutes={new Date().getTimezoneOffset()}
         onDateChange={setDate}
         onConfirm={onConfirm}
@@ -133,7 +136,7 @@ export const DateTimeField: FC<FormEntryField & TextStyles> = ({
           textStyle,
         ]}
       >
-        <Text>{date ? format(date, "MMM dd, yyyy") : placeHolder}</Text>
+        <Text style={{ fontSize: 16 }}>{date ? format(date, "MMM dd, yyyy") : placeHolder}</Text>
       </Pressable>
 
       {errorMessage && errorMessage != FAIL_SILENTLY ? (
