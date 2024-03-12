@@ -48,6 +48,7 @@ export interface FormEntryField {
     imageExtension?: string,
     pathname?: string,
   ) => Promise<{ path: string }>
+  options: any
 }
 
 const MINIMUM_CROP_DIMENSIONS = {
@@ -62,6 +63,7 @@ export const AvatarInputField: FC<FormEntryField & TextStyles> = ({
   isRequired,
   setHasError,
   onSaveData,
+  options,
   id,
 }) => {
   const { cropImage } = useImageCropContext()
@@ -88,14 +90,16 @@ export const AvatarInputField: FC<FormEntryField & TextStyles> = ({
       const croppedImage = await cropImage(result?.assets?.[0], { fixedCropAspectRatio: 1 })
       setSelectedPhoto(croppedImage)
 
-      const faces = await FaceDetection.processImage(croppedImage?.uri, {
-        landmarkMode: FaceDetectorLandmarkMode.ALL,
-        contourMode: FaceDetectorContourMode.ALL,
-      })
+      if (options?.faceDetectionRequired ?? true) {
+        const faces = await FaceDetection.processImage(croppedImage?.uri, {
+          landmarkMode: FaceDetectorLandmarkMode.ALL,
+          contourMode: FaceDetectorContourMode.ALL,
+        })
 
-      if (faces?.length === 0) {
-        MyToast.show({ type: "error", text1: "Face not detected" })
-        throw new Error("We could not detect face in the image")
+        if (faces?.length === 0) {
+          MyToast.show({ type: "error", text1: "No faces detected in the image" })
+          throw new Error("No faces detected in the image")
+        }
       }
 
       const localUri = croppedImage.uri
@@ -123,7 +127,7 @@ export const AvatarInputField: FC<FormEntryField & TextStyles> = ({
       Analytics.logError(err)
       setError(true)
     }
-  }, [cropImage, uploadImageFunction, setHasError])
+  }, [cropImage, options?.faceDetectionRequired, uploadImageFunction, setHasError])
 
   useEffect(() => {
     onSaveData?.({ id, value })

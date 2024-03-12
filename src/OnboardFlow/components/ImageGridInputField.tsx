@@ -61,6 +61,7 @@ export interface FormEntryField {
     pathname?: string,
   ) => Promise<{ path: string }>
   setScrollEnabled?: React.Dispatch<React.SetStateAction<boolean>>
+  options: any
 }
 
 const MINIMUM_CROP_DIMENSIONS = {
@@ -80,8 +81,9 @@ export const ImageGridInputField: FC<FormEntryField & TextStyles> = ({
   id,
   prefill,
   deleteImage,
+  options,
 }) => {
-  const [fullScreenSpinnerConfig, setFullScreenSpinnerConfig] = useState<{
+  const [fullScreenSpinnerConfig] = useState<{
     visible: boolean
     textContent?: string
   }>({
@@ -146,7 +148,7 @@ export const ImageGridInputField: FC<FormEntryField & TextStyles> = ({
 
   useEffect(() => {
     console.log({ totalImages, error: totalImages < 2 })
-    isRequired && setHasError(totalImages < 2)
+    isRequired && setHasError?.(totalImages < 2)
   }, [isRequired, setHasError, totalImages])
 
   const onPress = useCallback(
@@ -154,18 +156,16 @@ export const ImageGridInputField: FC<FormEntryField & TextStyles> = ({
       try {
         const croppedImage = await pickImage()
 
-        // setFullScreenSpinnerConfig((config) => ({ ...config, visible: true }))
+        if (options?.faceDetectionRequired ?? true) {
+          const faces = await FaceDetection.processImage(croppedImage?.uri, {
+            landmarkMode: FaceDetectorLandmarkMode.ALL,
+            contourMode: FaceDetectorContourMode.ALL,
+          })
 
-        const faces = await FaceDetection.processImage(croppedImage?.uri, {
-          landmarkMode: FaceDetectorLandmarkMode.ALL,
-          contourMode: FaceDetectorContourMode.ALL,
-        })
-
-        // setFullScreenSpinnerConfig((config) => ({ ...config, visible: false }))
-
-        if (faces?.length === 0) {
-          MyToast.show({ type: "error", text1: "No faces detected in the image" })
-          throw new Error("No faces detected in the image")
+          if (faces?.length === 0) {
+            MyToast.show({ type: "error", text1: "No faces detected in the image" })
+            throw new Error("No faces detected in the image")
+          }
         }
 
         const localUri = croppedImage.uri
@@ -210,7 +210,7 @@ export const ImageGridInputField: FC<FormEntryField & TextStyles> = ({
         Analytics.logError(e)
       }
     },
-    [pickImage, uploadImageFunction],
+    [options?.faceDetectionRequired, pickImage, uploadImageFunction],
   )
 
   useEffect(() => {
@@ -265,7 +265,7 @@ export const ImageGridInputField: FC<FormEntryField & TextStyles> = ({
         return (
           <View>
             <Image
-              source={{ uri: getAssetsPublicUrl(pic) }}
+              source={{ uri: getAssetsPublicUrl?.(pic) }}
               style={{ width: ITEM_WIDTH, height: ITEM_HEIGHT, borderRadius: 22 }}
             />
             <Pressable
